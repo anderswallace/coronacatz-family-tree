@@ -1,0 +1,139 @@
+FROM ubuntu:noble
+USER root
+
+# This is an auto-provided variable that is supplied by Docker as long as the
+#   Dockerfile declares an argument with this name
+# This is set to "amd64" for x64 processors and "arm64" for ARM processors
+ARG BUILDARCH
+
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
+
+ARG LAZY_GIT_VERSION=0.44.1
+ARG NODE_VERSION=23.5.0
+ARG NODE_VERSION_NUMERIC=221301
+ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION_NUMERIC=312
+
+# Install apt packages
+RUN apt-get update -y && \
+	apt-get install -y \
+		# General purpose packages
+		ca-certificates \
+		locales \
+		pkg-config \
+		tzdata \
+		# Developer tools
+		curl \
+		git \
+		graphviz \
+		jq \
+		parallel \
+		ssh \
+		sudo \
+		tar \
+		tmux \
+		tree \
+		unzip \
+		vim \
+		wget \
+		zip \
+		# Python
+		python${PYTHON_VERSION} \
+		python3-pip &&\
+	# By default, `/usr/bin/python3` points to 3.10. Remove the existing symlink
+	#   and create a new one pointing to the desired version
+	rm /usr/bin/python3 && \
+	update-alternatives --install \
+		/usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} ${PYTHON_VERSION_NUMERIC} && \
+	# Handle extra setup
+	# This is used to avoid git warnings when using hooks
+	locale-gen en_US.UTF-8 && \
+	update-locale LANG=en_US.UTF-8
+
+# Create the user
+RUN \
+	# Starting from Ubuntu 23.04, a default user is added that uses UID 1000.
+	# This dockerfile is derived from one that was originally written to target
+	#   Ubuntu 22.04. Rather than rewrite the other steps, simply delete the
+	#   new user and leave the rest of it the same.
+	userdel -r ubuntu && \
+	groupadd --gid $USER_GID "$USERNAME" && \
+	useradd --uid $USER_UID --gid $USER_GID -m "$USERNAME" -s /bin/bash && \
+	echo $USERNAME ALL=\(root\) NOPASSWD:ALL > "/etc/sudoers.d/$USERNAME" && \
+	chmod 0440 "/etc/sudoers.d/$USERNAME" && \
+	groupadd docker && \
+	usermod -aG docker "$USERNAME" && \
+	cp /etc/skel/.bashrc "/home/$USERNAME/.bashrc" && \
+	chown -R $USER_UID:$USER_GID "/home/$USERNAME"
+USER $USERNAME
+
+# Make binaries installed in the next step available via the PATH
+# Note that using `${PATH}` and `$PATH` may have different behavior according
+#   to https://github.com/moby/moby/issues/42863. For safety, prefer `$PATH`.
+ENV PATH="$PATH:/home/$USERNAME/.local/bin"
+ENV TZ="America/Chicago"
+
+# Install non-apt package/binaries
+RUN mkdir -p "$HOME/.local/bin" && \
+	# Adapt the Docker-provided build architecture to each tool's expected
+	#   architecture string. These mappings are as follows:
+	# * NodeJS:
+	#   - "amd64" -> "x64"
+	#   - "arm64" -> "arm64"
+	# * Lazygit/Lazydocker:
+	#   - "amd64" -> "x86_64"
+	#   - "arm64" -> "arm64"
+	NODE_ARCH=$(if [ "$BUILDARCH" = "amd64" ]; then echo "x64"; else echo "arm64"; fi) && \
+	LAZYGIT_ARCH=$(if [ "$BUILDARCH" = "amd64" ]; then echo "x86_64"; else echo "arm64"; fi) && \
+	# Install Node + NPM
+	# Ideally, this shouldn't be necessary since `bun` is being used. However,
+	#   some binaries (e.g. spago) fail to run even if `/usr/bin/node` is
+	#   symlinked to `bun`. For now, also install Node + NPM and use that
+	#   for some packages and figure this out later.
+	wget -O /tmp/node.tar.gz \
+		https://nodejs.org/dist/v$NODE_VERSION/node-v${NODE_VERSION}-linux-${NODE_ARCH}.tar.xz && \
+	mkdir -p "/home/$USERNAME/node" && \
+	tar -xf /tmp/node.tar.gz -C "/home/$USERNAME/node" && \
+	mv "/home/$USERNAME/node/node-v$NODE_VERSION-linux-${NODE_ARCH}" "/home/$USERNAME/node/$NODE_VERSION" && \
+	sudo update-alternatives --install \
+		/usr/bin/node node "/home/$USERNAME/node/$NODE_VERSION/bin/node" $NODE_VERSION_NUMERIC \
+		--slave /usr/bin/npm npm "/home/$USERNAME/node/$NODE_VERSION/bin/npm" \
+		--slave /usr/bin/npx npx "/home/$USERNAME/node/$NODE_VERSION/bin/npx" && \
+	# Add lazygit
+	wget -O /tmp/lazygit.tar.gz \
+	https://github.com/jesseduffield/lazygit/releases/download/v$LAZY_GIT_VERSION/lazygit_${LAZY_GIT_VERSION}_Linux_${LAZYGIT_ARCH}.tar.gz && \
+	mkdir -p "$HOME/lazygit/$LAZY_GIT_VERSION" && \
+	tar -xzf /tmp/lazygit.tar.gz -C "$HOME/lazygit/$LAZY_GIT_VERSION" && \
+	ln -s "$HOME/lazygit/$LAZY_GIT_VERSION/lazygit" "$HOME/.local/bin/lazygit" && \
+	# Clean up temporary files
+	rm -rf /tmp/${USERNAME}
+
+# Install Python packages
+COPY ./requirements.txt /tmp/requirements.txt
+RUN \
+	# Meson is required for some packages. Install it first.
+	# Note that `--break-system-packages` is used since this docker container
+	#   is only used for a single project. There's no need to use a venv since
+	#   the container already acts as one.
+	python3 -m pip install --break-system-packages --no-cache-dir -r /tmp/requirements.txt
+
+RUN \
+	# Install npm packages
+	npm install -g \
+		typescript \
+		typescript-language-server \
+		wscat \
+		vite && \
+	# Add NPM binaries to the PATH
+	echo "export PATH=\$PATH:/home/$USERNAME/node/$NODE_VERSION/bin" >> ~/.bashrc
+
+RUN \
+	# Add aliases
+	echo "alias gg=lazygit" >> ~/.bashrc && \
+	# Source the bashrc file via bash_profile so that tmux sessions pick up
+	#   all aliases and configuration from the bashrc file
+	echo ". ~/.bashrc" >> ~/.bash_profile && \
+	# Handle tmux setup
+	echo "set -g default-terminal 'screen-256color'" >> ~/.tmux.conf

@@ -1,0 +1,24 @@
+{
+    "name": "Linux Dev Container",
+    "dockerComposeFile": ["docker-compose.yaml"],
+    "service": "dev",
+    "workspaceFolder": "/workspace/",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "aaron-bond.better-comments", "bradlc.vscode-tailwindcss",
+          "eamodio.gitlens",
+          "EditorConfig.EditorConfig",
+          "formulahendry.auto-rename-tag",
+          "github.vscode-github-actions",
+          "jebbs.plantuml",
+          "ms-azuretools.vscode-docker",
+          "ryanluker.vscode-coverage-gutters",
+          "streetsidesoftware.code-spell-checker",
+          "timonwong.shellcheck",
+          "yzhang.markdown-all-in-one",
+          "esbenp.prettier-vscode"
+        ]
+      }
+    }
+  }
