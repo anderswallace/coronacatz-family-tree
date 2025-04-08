@@ -3,6 +3,7 @@ import { Client, Message, TextChannel } from "discord.js";
 const TARGET_CHANNEL_NAME = "family-tree";
 
 export function setupAddListener(client: Client) {
+  // Trigger parsing when user sends a message in a channel
   client.on("messageCreate", async (message: Message) => {
     try {
       if (message.author.bot) {
@@ -22,10 +23,9 @@ export function setupAddListener(client: Client) {
         const childId = match[1];
         const parentId = match[2];
 
+        // Return Discord IDs of mentioned users
         const childUser = await message.guild?.members.fetch(childId);
         const parentUser = await message.guild?.members.fetch(parentId);
-        console.log(childUser);
-        console.log(parentUser);
 
         if (childUser === undefined || parentUser === undefined) {
           channel.send(
@@ -44,6 +44,7 @@ export function setupAddListener(client: Client) {
           parentUser.nickname ??
           parentUser.user.globalName ??
           parentUser.user.username;
+
         channel.send(
           `Updated family tree! Added ${childUsername} to ${parentUsername}`
         );

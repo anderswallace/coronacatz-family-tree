@@ -1,12 +1,12 @@
-import dotenv from "dotenv";
 import { client } from "./client.js";
 import { setupEvents } from "./events.js";
-
-dotenv.config();
+import { config } from "./config.js";
+import { registerSlashCommands } from "./registerCommands.js";
 
 client.once("ready", () => {
   console.log(`Logged in as ${client.user?.tag}`);
 });
 
+await registerSlashCommands();
 setupEvents(client);
-client.login(process.env.DISCORD_TOKEN);
+client.login(config.discordToken);
