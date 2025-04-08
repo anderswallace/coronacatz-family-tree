@@ -1,6 +1,6 @@
 import { REST, Routes, SlashCommandBuilder } from "discord.js";
-import { helpCommand } from "./commands/help.js";
-import { config } from "./config.js";
+import { helpCommand } from "../commands/help.js";
+import { config } from "../config/config.js";
 
 const commands: SlashCommandBuilder[] = [helpCommand];
 

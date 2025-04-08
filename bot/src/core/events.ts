@@ -1,6 +1,6 @@
 import { Client } from "discord.js";
-import { setupAddListener } from "./listeners/addListener.js";
-import { handleHelpCommand } from "./commands/help.js";
+import { setupAddListener } from "../listeners/addListener.js";
+import { handleHelpCommand } from "../commands/help.js";
 
 export function setupEvents(client: Client) {
   setupAddListener(client);
