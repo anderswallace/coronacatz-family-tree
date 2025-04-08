@@ -25,12 +25,12 @@ export default defineConfig({
        * - 'cobertura': produces an XML file (cobertura-coverage.xml)
        * - 'lcov': produces an LCOV file (lcov.info)
        */
-      reporter: ["text", "cobertura"],
+      reporter: ["text"],
 
       /**
        * Where to place coverage output files
        */
-      reportsDirectory: "./coverage",
+      //reportsDirectory: "./coverage",
 
       /**
        * Additional configuration options for c8 can go here
