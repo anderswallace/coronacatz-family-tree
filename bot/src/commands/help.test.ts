@@ -1,6 +1,5 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi, afterEach } from "vitest";
 import { handleHelpCommand } from "./help.js";
-import { afterEach } from "node:test";
 import { ChatInputCommandInteraction } from "discord.js";
 
 describe("handleHelpCommand", () => {
