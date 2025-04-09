@@ -11,7 +11,7 @@ describe("config", () => {
     vi.resetModules();
   });
 
-  test("Environment variables should be imported without errors", async () => {
+  test("Should import environment variables without errors", async () => {
     const { config } = await import("./config.js");
 
     expect(config.discordToken).toBe("mock-token");
