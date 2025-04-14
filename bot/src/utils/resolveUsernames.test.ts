@@ -52,11 +52,21 @@ describe("resolveUsernames", () => {
 
     const result = await resolveUsernames(mockMessage, "child-id", "parent-id");
 
+    expect(result).toBeDefined();
     expect(result).toEqual({
       childUsername: "child-nickname",
       parentUsername: "parent-nickname",
     });
     expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
+  test("Should return null if message was not sent from server", async () => {
+    // mock message sent from outside a server
+    const mockMessage = {} as Message;
+
+    const result = await resolveUsernames(mockMessage, "child-id", "parent-id");
+
+    expect(result).toBeNull();
   });
 
   test("Should assign username when nickname and globalName are not present", async () => {
@@ -91,6 +101,7 @@ describe("resolveUsernames", () => {
   });
 
   test("Should return null if fetch fails for one or both users", async () => {
+    // mock fetch being called 4 times
     const fetch = vi
       .fn()
       .mockReturnValueOnce(undefined)
@@ -98,7 +109,14 @@ describe("resolveUsernames", () => {
         createMockGuildMember({
           username: "parent-username",
         })
-      );
+      )
+      .mockResolvedValueOnce(
+        createMockGuildMember({
+          username: "child-username",
+        })
+      )
+      .mockReturnValueOnce(undefined);
+
     const mockMessage = {
       guild: {
         members: {
@@ -108,7 +126,13 @@ describe("resolveUsernames", () => {
     } as Message;
 
     const result = await resolveUsernames(mockMessage, "child-id", "parent-id");
-
     expect(result).toBeNull();
+
+    const secondResult = await resolveUsernames(
+      mockMessage,
+      "child-id",
+      "parent-id"
+    );
+    expect(secondResult).toBeNull();
   });
 });

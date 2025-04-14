@@ -3,7 +3,7 @@ import { client } from "./client.js";
 import { GatewayIntentBits, IntentsBitField } from "discord.js";
 
 describe("client", () => {
-  test("Should be  an instance of client with correct intents", () => {
+  test("Should be an instance of client with correct intents", () => {
     const expectedIntents = new IntentsBitField([
       GatewayIntentBits.Guilds,
       GatewayIntentBits.GuildMessages,

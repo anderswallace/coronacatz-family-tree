@@ -5,8 +5,14 @@ export async function resolveUsernames(
   childId: string,
   parentId: string
 ): Promise<{ childUsername: string; parentUsername: string } | null> {
-  const childUser = await message.guild?.members.fetch(childId);
-  const parentUser = await message.guild?.members.fetch(parentId);
+  // verify message isn't a private message
+  const guild = message.guild;
+  if (!guild) {
+    return null;
+  }
+
+  const childUser = await message.guild.members.fetch(childId);
+  const parentUser = await message.guild.members.fetch(parentId);
 
   if (childUser === undefined || parentUser === undefined) {
     return null;
