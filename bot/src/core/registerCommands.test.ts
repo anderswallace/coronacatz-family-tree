@@ -35,8 +35,10 @@ describe("registerSlashCommands", () => {
   });
 
   test("should call REST.put with correct route and command JSON", async () => {
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     await registerSlashCommands();
 
+    expect(logSpy).toHaveBeenCalledWith("Registering slash commands...");
     expect(mockSetToken).toHaveBeenCalledWith("mock-token");
     expect(mockPut).toHaveBeenCalledWith(
       "/applications/mock-client-id/commands",
@@ -44,6 +46,7 @@ describe("registerSlashCommands", () => {
         body: [{ name: "help", description: "mock help command" }],
       }
     );
+    expect(logSpy).toHaveBeenCalledWith("Slash commands registered.");
   });
 
   test("Should log message if REST.put throws an error", async () => {

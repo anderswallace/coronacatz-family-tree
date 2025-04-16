@@ -29,4 +29,12 @@ describe("parseAddMessage", () => {
 
     expect(parsedIds).toBeNull();
   });
+
+  test("Should find match even when message has improper spacing", () => {
+    const mockMessage = "please add    <@1234>   to   <@5432>";
+
+    const parsedIds = parseAddMessage(mockMessage);
+
+    expect(parsedIds).not.toBeNull();
+  });
 });
