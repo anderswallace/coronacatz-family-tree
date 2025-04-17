@@ -37,4 +37,36 @@ describe("parseAddMessage", () => {
 
     expect(parsedIds).not.toBeNull();
   });
+
+  test("Should find match if user ID has leading exclamation point (user possesses a nickname)", () => {
+    const childIdValue = "1234";
+    const parentIdValue = "5432";
+
+    const childIdString = `<@!${childIdValue}>`;
+    const parentIdString = `<@!${parentIdValue}>`;
+
+    const mockMessage = `please add ${childIdString} to ${parentIdString}`;
+
+    const parsedIds = parseAddMessage(mockMessage);
+
+    expect(parsedIds).toBeDefined();
+    expect(parsedIds?.childId).toEqual(childIdValue);
+    expect(parsedIds?.parentId).toEqual(parentIdValue);
+  });
+
+  test("Should find match if user ID does not have leading exclamation point (user has no nickname)", () => {
+    const childIdValue = "1234";
+    const parentIdValue = "5432";
+
+    const childIdString = `<@!${childIdValue}>`;
+    const parentIdString = `<@!${parentIdValue}>`;
+
+    const mockMessage = `please add ${childIdString} to ${parentIdString}`;
+
+    const parsedIds = parseAddMessage(mockMessage);
+
+    expect(parsedIds).toBeDefined();
+    expect(parsedIds?.childId).toEqual(childIdValue);
+    expect(parsedIds?.parentId).toEqual(parentIdValue);
+  });
 });

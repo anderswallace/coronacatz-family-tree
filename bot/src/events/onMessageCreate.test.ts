@@ -1,35 +1,14 @@
 import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-import { setupAddListener } from "./addListener.js";
-import {
-  User,
-  Client,
-  Message,
-  TextChannel,
-  GatewayIntentBits,
-} from "discord.js";
+import { User, Message, TextChannel } from "discord.js";
 import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
+import { onMessageCreate } from "./onMessageCreate.js";
 
 vi.mock("../utils/resolveUsernames");
 
-describe("setupAddListener", () => {
-  const mockClient = new Client({
-    intents: [
-      GatewayIntentBits.Guilds,
-      GatewayIntentBits.GuildMessages,
-      GatewayIntentBits.MessageContent,
-    ],
-  });
-
-  // set up listener before each test
+describe("onMessageCreate", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    setupAddListener(mockClient);
-  });
-
-  // clean up listener after each test
-  afterEach(() => {
-    mockClient.removeAllListeners("messageCreate");
   });
 
   test("Should ignore messages from bots", async () => {
@@ -54,7 +33,7 @@ describe("setupAddListener", () => {
       value: channel,
     });
 
-    mockClient.emit("messageCreate", mockMessage);
+    onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
   });
 
@@ -80,7 +59,7 @@ describe("setupAddListener", () => {
       value: channel,
     });
 
-    mockClient.emit("messageCreate", mockMessage);
+    onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
   });
 
@@ -110,7 +89,7 @@ describe("setupAddListener", () => {
       value: channel,
     });
 
-    mockClient.emit("messageCreate", mockMessage);
+    onMessageCreate(mockMessage);
     expect(resolverSpy).not.toHaveBeenCalled();
   });
 
@@ -145,7 +124,7 @@ describe("setupAddListener", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    mockClient.emit("messageCreate", mockMessage);
+    onMessageCreate(mockMessage);
 
     // Allow async listener to resolve
     await new Promise((r) => setTimeout(r, 0));
@@ -190,7 +169,7 @@ describe("setupAddListener", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    mockClient.emit("messageCreate", mockMessage);
+    onMessageCreate(mockMessage);
 
     // Allow async listener to resolve
     await new Promise((r) => setTimeout(r, 0));
@@ -233,7 +212,7 @@ describe("setupAddListener", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    mockClient.emit("messageCreate", mockMessage);
+    onMessageCreate(mockMessage);
 
     // Allow async listener to resolve
     await new Promise((r) => setTimeout(r, 0));
@@ -274,7 +253,7 @@ describe("setupAddListener", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    mockClient.emit("messageCreate", mockMessage);
+    onMessageCreate(mockMessage);
 
     // Allow async listener to resolve
     await new Promise((r) => setTimeout(r, 0));

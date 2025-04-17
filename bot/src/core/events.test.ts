@@ -1,11 +1,11 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { setupEvents } from "./events.js";
 import { Client, Events, Interaction } from "discord.js";
-import { setupAddListener } from "../listeners/addListener.js";
+import { setupAddListeners } from "../listeners/addListeners.js";
 import { handleHelpCommand } from "../commands/help.js";
 
-vi.mock("../listeners/addListener", () => ({
-  setupAddListener: vi.fn(),
+vi.mock("../listeners/addListeners", () => ({
+  setupAddListeners: vi.fn(),
 }));
 
 vi.mock("../commands/help", () => ({
@@ -20,9 +20,9 @@ describe("setupEvents", () => {
     vi.clearAllMocks();
   });
 
-  test("Should call setupAddListener", () => {
+  test("Should call setupAddListeners", () => {
     setupEvents(client);
-    expect(setupAddListener).toHaveBeenCalledWith(client);
+    expect(setupAddListeners).toHaveBeenCalledWith(client);
   });
 
   test("Should call handleHelpCommand when interaction is a chat interaction with 'help' in command", () => {

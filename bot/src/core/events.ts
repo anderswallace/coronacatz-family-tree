@@ -1,9 +1,9 @@
 import { Client } from "discord.js";
-import { setupAddListener } from "../listeners/addListener.js";
+import { setupAddListeners } from "../listeners/addListeners.js";
 import { handleHelpCommand } from "../commands/help.js";
 
 export function setupEvents(client: Client) {
-  setupAddListener(client);
+  setupAddListeners(client);
 
   client.on("interactionCreate", async (interaction) => {
     // slash command handling
