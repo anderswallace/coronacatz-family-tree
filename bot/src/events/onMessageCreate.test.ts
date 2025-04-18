@@ -2,9 +2,11 @@ import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
 import { User, Message, TextChannel } from "discord.js";
 import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
-import { onMessageCreate } from "./onMessageCreate.js";
+import { createOnMessageCreate } from "./onMessageCreate.js";
 
 vi.mock("../utils/resolveUsernames");
+
+const targetChannel = "family-tree";
 
 describe("onMessageCreate", () => {
   beforeEach(() => {
@@ -26,12 +28,14 @@ describe("onMessageCreate", () => {
     });
 
     Object.defineProperty(channel, "name", {
-      value: "family-tree",
+      value: targetChannel,
     });
 
     Object.defineProperty(mockMessage, "channel", {
       value: channel,
     });
+
+    const onMessageCreate = createOnMessageCreate(targetChannel);
 
     onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
@@ -59,6 +63,8 @@ describe("onMessageCreate", () => {
       value: channel,
     });
 
+    const onMessageCreate = createOnMessageCreate(targetChannel);
+
     onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
   });
@@ -82,12 +88,14 @@ describe("onMessageCreate", () => {
     });
 
     Object.defineProperty(channel, "name", {
-      value: "family-tree",
+      value: targetChannel,
     });
 
     Object.defineProperty(mockMessage, "channel", {
       value: channel,
     });
+
+    const onMessageCreate = createOnMessageCreate(targetChannel);
 
     onMessageCreate(mockMessage);
     expect(resolverSpy).not.toHaveBeenCalled();
@@ -111,7 +119,7 @@ describe("onMessageCreate", () => {
     });
 
     Object.defineProperty(channel, "name", {
-      value: "family-tree",
+      value: targetChannel,
     });
 
     Object.defineProperty(mockMessage, "channel", {
@@ -123,6 +131,8 @@ describe("onMessageCreate", () => {
     channel.send = sendMock;
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
+
+    const onMessageCreate = createOnMessageCreate(targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -157,7 +167,7 @@ describe("onMessageCreate", () => {
     });
 
     Object.defineProperty(channel, "name", {
-      value: "family-tree",
+      value: targetChannel,
     });
 
     Object.defineProperty(mockMessage, "channel", {
@@ -168,6 +178,8 @@ describe("onMessageCreate", () => {
     channel.send = sendMock;
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
+
+    const onMessageCreate = createOnMessageCreate(targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -200,7 +212,7 @@ describe("onMessageCreate", () => {
     });
 
     Object.defineProperty(channel, "name", {
-      value: "family-tree",
+      value: targetChannel,
     });
 
     Object.defineProperty(mockMessage, "channel", {
@@ -211,6 +223,8 @@ describe("onMessageCreate", () => {
     channel.send = sendMock;
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
+
+    const onMessageCreate = createOnMessageCreate(targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -241,7 +255,7 @@ describe("onMessageCreate", () => {
     });
 
     Object.defineProperty(channel, "name", {
-      value: "family-tree",
+      value: targetChannel,
     });
 
     Object.defineProperty(mockMessage, "channel", {
@@ -252,6 +266,8 @@ describe("onMessageCreate", () => {
     channel.send = sendMock;
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
+
+    const onMessageCreate = createOnMessageCreate(targetChannel);
 
     onMessageCreate(mockMessage);
 

@@ -12,6 +12,8 @@ vi.mock("../commands/help", () => ({
   handleHelpCommand: vi.fn(),
 }));
 
+const targetChannel = "family-tree";
+
 describe("setupEvents", () => {
   let client: Client;
 
@@ -21,12 +23,12 @@ describe("setupEvents", () => {
   });
 
   test("Should call setupAddListeners", () => {
-    setupEvents(client);
-    expect(setupAddListeners).toHaveBeenCalledWith(client);
+    setupEvents(client, targetChannel);
+    expect(setupAddListeners).toHaveBeenCalledWith(client, targetChannel);
   });
 
   test("Should call handleHelpCommand when interaction is a chat interaction with 'help' in command", () => {
-    setupEvents(client);
+    setupEvents(client, targetChannel);
 
     const mockInteraction = {
       isChatInputCommand: () => true,
@@ -39,7 +41,7 @@ describe("setupEvents", () => {
   });
 
   test("Should not call handleHelpCommand for non-chat interactions", () => {
-    setupEvents(client);
+    setupEvents(client, targetChannel);
 
     const mockInteraction = {
       isChatInputCommand: () => false,

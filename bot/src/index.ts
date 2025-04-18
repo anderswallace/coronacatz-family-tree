@@ -12,7 +12,7 @@ async function init() {
   });
 
   await registerSlashCommands(config.discordToken, config.clientId);
-  setupEvents(client);
+  setupEvents(client, config.targetChannel);
   client.login(config.discordToken);
 }
 
