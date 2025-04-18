@@ -1,10 +1,11 @@
-import { client } from "./core/client.js";
+import { createClient } from "./core/client.js";
 import { setupEvents } from "./core/events.js";
 import { getConfig } from "./config/config.js";
 import { registerSlashCommands } from "./core/registerCommands.js";
 
 async function init() {
-  const config = getConfig();
+  const config = getConfig(process.env);
+  const client = createClient();
 
   client.once("ready", () => {
     console.log(`Logged in as ${client.user?.tag}`);

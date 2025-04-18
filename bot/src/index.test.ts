@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { init } from "./index.js";
 import { registerSlashCommands } from "./core/registerCommands.js";
-import { client } from "./core/client.js";
+import { createClient } from "./core/client.js";
 import { setupEvents } from "./core/events.js";
 
 vi.mock("../src/core/client.js", () => ({
