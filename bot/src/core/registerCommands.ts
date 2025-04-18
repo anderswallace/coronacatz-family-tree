@@ -1,16 +1,18 @@
 import { REST, Routes, SlashCommandBuilder } from "discord.js";
 import { helpCommand } from "../commands/help.js";
-import { config } from "../config/config.js";
 
 const commands: SlashCommandBuilder[] = [helpCommand];
 
-export async function registerSlashCommands() {
-  const rest = new REST({ version: "10" }).setToken(config.discordToken);
+export async function registerSlashCommands(
+  discordToken: string,
+  clientId: string
+) {
+  const rest = new REST({ version: "10" }).setToken(discordToken);
 
   try {
     console.log("Registering slash commands...");
 
-    await rest.put(Routes.applicationCommands(config.clientId), {
+    await rest.put(Routes.applicationCommands(clientId), {
       body: commands.map((cmd) => cmd.toJSON()),
     });
 

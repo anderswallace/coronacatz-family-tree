@@ -1,4 +1,4 @@
-import { GuildMember, Message, MessageFlagsBitField } from "discord.js";
+import { GuildMember, Message } from "discord.js";
 
 export async function resolveUsernames(
   message: Message,

@@ -22,13 +22,6 @@ vi.mock("../commands/help", () => ({
   },
 }));
 
-vi.mock("../config/config", () => ({
-  config: {
-    discordToken: "mock-token",
-    clientId: "mock-client-id",
-  },
-}));
-
 describe("registerSlashCommands", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -36,7 +29,7 @@ describe("registerSlashCommands", () => {
 
   test("should call REST.put with correct route and command JSON", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    await registerSlashCommands();
+    await registerSlashCommands("mock-token", "mock-client-id");
 
     expect(logSpy).toHaveBeenCalledWith("Registering slash commands...");
     expect(mockSetToken).toHaveBeenCalledWith("mock-token");
@@ -55,7 +48,7 @@ describe("registerSlashCommands", () => {
       .mockImplementation(() => {});
     mockPut.mockRejectedValueOnce(new Error("discord.js error"));
 
-    await registerSlashCommands();
+    await registerSlashCommands("mock-token", "mock-client-id");
 
     expect(consoleError).toHaveBeenCalledWith(
       "Failed to register commands: ",

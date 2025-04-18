@@ -10,7 +10,10 @@ function getEnv(key: string): string {
   return value;
 }
 
-export const config = {
-  discordToken: getEnv("DISCORD_TOKEN"),
-  clientId: getEnv("CLIENT_ID"),
-};
+export function getConfig() {
+  return {
+    discordToken: getEnv("DISCORD_TOKEN"),
+    clientId: getEnv("CLIENT_ID"),
+    targetChannel: getEnv("TARGET_CHANNEL"),
+  };
+}
