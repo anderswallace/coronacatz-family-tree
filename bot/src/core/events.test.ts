@@ -51,4 +51,17 @@ describe("setupEvents", () => {
 
     expect(handleHelpCommand).toHaveBeenCalledTimes(0);
   });
+
+  test("Should not call handleHelpCommand for chat interaction that is not help command", () => {
+    setupEvents(client, targetChannel);
+
+    const mockInteraction = {
+      isChatInputCommand: () => true,
+      commandName: "other",
+    } as unknown as Interaction;
+
+    client.emit(Events.InteractionCreate, mockInteraction);
+
+    expect(handleHelpCommand).toHaveBeenCalledTimes(0);
+  });
 });
