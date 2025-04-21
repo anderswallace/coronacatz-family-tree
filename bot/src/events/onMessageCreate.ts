@@ -32,6 +32,9 @@ export function createOnMessageCreate(targetChannelName: string) {
       }
 
       const { childUsername, parentUsername } = resolvedNames;
+
+      // TODO: call DB functions here to update tree
+
       await channel.send(
         `Family tree updated! Added ${childUsername} to ${parentUsername}`
       );

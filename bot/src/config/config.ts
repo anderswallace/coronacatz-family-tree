@@ -17,5 +17,6 @@ export function getConfig(env: Env) {
     discordToken: getEnv(env, "DISCORD_TOKEN"),
     clientId: getEnv(env, "CLIENT_ID"),
     targetChannel: getEnv(env, "TARGET_CHANNEL"),
+    firebaseDbUrl: getEnv(env, "FIREBASE_DB_URL"),
   };
 }
