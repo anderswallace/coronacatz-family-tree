@@ -1,8 +1,12 @@
 import { Message, TextChannel } from "discord.js";
 import { parseAddMessage } from "../utils/parseAddMessage.js";
 import { resolveUsernames } from "../utils/resolveUsernames.js";
+import { Database } from "firebase/database";
 
-export function createOnMessageCreate(targetChannelName: string) {
+export function createOnMessageCreate(
+  database: Database,
+  targetChannelName: string
+) {
   return async function onMessageCreate(message: Message) {
     const channel = message.channel as TextChannel;
     if (channel.name !== targetChannelName) {

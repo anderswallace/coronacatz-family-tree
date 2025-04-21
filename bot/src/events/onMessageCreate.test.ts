@@ -3,10 +3,12 @@ import { User, Message, TextChannel } from "discord.js";
 import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
 import { createOnMessageCreate } from "./onMessageCreate.js";
+import { Database } from "firebase/database";
 
 vi.mock("../utils/resolveUsernames");
 
 const targetChannel = "family-tree";
+const mockDb = {} as unknown as Database;
 
 describe("onMessageCreate", () => {
   beforeEach(() => {
@@ -35,7 +37,7 @@ describe("onMessageCreate", () => {
       value: channel,
     });
 
-    const onMessageCreate = createOnMessageCreate(targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
 
     onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
@@ -63,7 +65,7 @@ describe("onMessageCreate", () => {
       value: channel,
     });
 
-    const onMessageCreate = createOnMessageCreate(targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
 
     onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
@@ -95,7 +97,7 @@ describe("onMessageCreate", () => {
       value: channel,
     });
 
-    const onMessageCreate = createOnMessageCreate(targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
 
     onMessageCreate(mockMessage);
     expect(resolverSpy).not.toHaveBeenCalled();
@@ -132,7 +134,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -179,7 +181,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -224,7 +226,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -267,7 +269,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
 
     onMessageCreate(mockMessage);
 

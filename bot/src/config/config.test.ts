@@ -11,6 +11,7 @@ describe("config", () => {
       DISCORD_TOKEN: "mock-token",
       CLIENT_ID: "mock-client-id",
       TARGET_CHANNEL: "mock-target-channel",
+      FIREBASE_DB_URL: "mock-db-url",
     };
 
     const config = getConfig(env);
@@ -18,6 +19,7 @@ describe("config", () => {
     expect(config.discordToken).toBe("mock-token");
     expect(config.clientId).toBe("mock-client-id");
     expect(config.targetChannel).toBe("mock-target-channel");
+    expect(config.firebaseDbUrl).toBe("mock-db-url");
   });
 
   test("Should throw error when .env secrets are missing", async () => {
