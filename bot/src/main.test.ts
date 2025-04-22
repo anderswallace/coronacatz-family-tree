@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import { main } from "./main.js";
 import { registerSlashCommands } from "./core/registerCommands.js";
 import { initFirebase } from "./services/firebase.js";
@@ -46,7 +46,7 @@ vi.mock("./core/client.js", () => {
 });
 
 describe("index", () => {
-  const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  const logSpy = vi.spyOn(console, "log").mockImplementation(() => { });
 
   test("Should register slash commands and log in ", async () => {
     // simulate ready event
