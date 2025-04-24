@@ -7,7 +7,11 @@ import { initFirebase } from "./services/firebase.js";
 export async function main() {
   const config = getConfig(process.env);
   const client = createClient();
-  const database = initFirebase(config.firebaseDbUrl);
+  const database = initFirebase(
+    config.firebaseDbUrl,
+    config.firebaseProjectId,
+    config.firebaseApiKey,
+  );
 
   client.once("ready", () => {
     console.log(`Logged in as ${client.user?.tag}`);

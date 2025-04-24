@@ -18,5 +18,7 @@ export function getConfig(env: Env) {
     clientId: getEnv(env, "CLIENT_ID"),
     targetChannel: getEnv(env, "TARGET_CHANNEL"),
     firebaseDbUrl: getEnv(env, "FIREBASE_DB_URL"),
+    firebaseProjectId: getEnv(env, "FIREBASE_PROJECT_ID"),
+    firebaseApiKey: getEnv(env, "FIREBASE_API_KEY"),
   };
 }

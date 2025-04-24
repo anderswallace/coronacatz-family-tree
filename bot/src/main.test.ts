@@ -31,6 +31,8 @@ vi.mock("./config/config.js", () => ({
     clientId: "mock-client-id",
     targetChannel: "mock-channel",
     firebaseDbUrl: "mock-db-url",
+    firebaseProjectId: "mock-project-id",
+    firebaseApiKey: "mock-api-key",
   })),
 }));
 
@@ -56,7 +58,11 @@ describe("index", () => {
 
     await main();
 
-    expect(initFirebase).toHaveBeenCalledWith("mock-db-url");
+    expect(initFirebase).toHaveBeenCalledWith(
+      "mock-db-url",
+      "mock-project-id",
+      "mock-api-key",
+    );
     expect(registerSlashCommands).toHaveBeenCalledWith(
       "mock-token",
       "mock-client-id",

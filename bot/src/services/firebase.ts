@@ -3,10 +3,16 @@ import { Database, getDatabase } from "firebase/database";
 
 let app: FirebaseApp | undefined;
 
-export function initFirebase(firebaseDbUrl: string): Database {
+export function initFirebase(
+  dbUrl: string,
+  projectId: string,
+  apiKey: string,
+): Database {
   if (!getApps().length) {
     app = initializeApp({
-      databaseURL: firebaseDbUrl,
+      databaseURL: dbUrl,
+      projectId,
+      apiKey,
     });
     console.log("Firebase database initialized.");
     return getDatabase(app);

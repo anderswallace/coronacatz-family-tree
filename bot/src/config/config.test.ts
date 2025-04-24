@@ -12,6 +12,8 @@ describe("config", () => {
       CLIENT_ID: "mock-client-id",
       TARGET_CHANNEL: "mock-target-channel",
       FIREBASE_DB_URL: "mock-db-url",
+      FIREBASE_PROJECT_ID: "mock-project-id",
+      FIREBASE_API_KEY: "mock-api-key",
     };
 
     const config = getConfig(env);
@@ -20,13 +22,15 @@ describe("config", () => {
     expect(config.clientId).toBe("mock-client-id");
     expect(config.targetChannel).toBe("mock-target-channel");
     expect(config.firebaseDbUrl).toBe("mock-db-url");
+    expect(config.firebaseProjectId).toBe("mock-project-id");
+    expect(config.firebaseApiKey).toBe("mock-api-key");
   });
 
   test("Should throw error when .env secrets are missing", async () => {
     const env = {};
 
     expect(() => getConfig(env)).toThrowError(
-      "Missing required environment variable: DISCORD_TOKEN"
+      "Missing required environment variable: DISCORD_TOKEN",
     );
   });
 });

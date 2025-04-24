@@ -4,17 +4,24 @@ import { Node, TreeSchema } from "../schema/treeNode.js";
 export async function fetchNodeById(
   userId: string,
   database: Database,
-): Promise<Node | null> {
+): Promise<Node> {
   const snapshot = await get(ref(database, `users/${userId}`));
 
   if (!snapshot.exists()) {
-    return null;
+    throw new Error(`User with ID ${userId} not found in the database`);
   }
 
   const raw = snapshot.val();
-  const result = TreeSchema.safeParse({ userId, ...raw });
+  const result = TreeSchema.safeParse(raw);
 
-  return result.success ? result.data : null;
+  if (!result.success) {
+    console.error("Zod validation failed: ", result.error.format());
+    throw new Error(
+      `Invalid Node data for user ${userId}: ${result.error.message}`,
+    );
+  }
+
+  return result.data;
 }
 
 export async function uploadNode(

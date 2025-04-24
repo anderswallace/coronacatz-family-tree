@@ -1,0 +1,16 @@
+{
+  "users": {
+    "285270008458903552": {
+      "userId": "285270008458903552",
+      "name": "Anders",
+      "parentId": "ROOT",
+      "group": "test-group",
+      "color": "#99ccff"
+    }
+  },
+  "children": {
+    "ROOT": {
+      "285270008458903552": true
+    }
+  }
+}
