@@ -1,11 +1,22 @@
-import { describe, expect, test, vi, beforeEach } from "vitest";
+import { describe, expect, test, vi, beforeEach, Mock } from "vitest";
 import { User, Message, TextChannel } from "discord.js";
 import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
 import { createOnMessageCreate } from "./onMessageCreate.js";
 import { Database } from "firebase/database";
+import { createNodeFromParent } from "../utils/createNodeFromParent.js";
+import { uploadNode } from "../services/databaseService.js";
 
 vi.mock("../utils/resolveUsernames");
+
+vi.mock("../utils/createNodeFromParent", () => ({
+  createNodeFromParent: vi.fn(),
+  uploadNode: vi.fn(),
+}));
+
+vi.mock("../services/databaseService", () => ({
+  uploadNode: vi.fn(),
+}));
 
 const targetChannel = "family-tree";
 const mockDb = {} as unknown as Database;
@@ -153,8 +164,18 @@ describe("onMessageCreate", () => {
       childUsername: mockChildNickname,
       parentUsername: mockParentNickname,
     });
+
     const mockMessage = Object.create(Message.prototype) as Message<true>;
     const channel = Object.create(TextChannel.prototype) as TextChannel;
+
+    (createNodeFromParent as Mock).mockResolvedValue({
+      userId: "mock-id",
+      name: "mock-name",
+      parentId: "mock-parent",
+      group: "mock-group",
+      color: "#99ccff",
+    });
+    (uploadNode as Mock).mockResolvedValue(undefined);
 
     Object.defineProperty(mockMessage, "author", {
       value: {
