@@ -46,7 +46,7 @@ vi.mock("./core/client.js", () => {
 });
 
 describe("index", () => {
-  const logSpy = vi.spyOn(console, "log").mockImplementation(() => { });
+  const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
   test("Should register slash commands and log in ", async () => {
     // simulate ready event
@@ -59,7 +59,7 @@ describe("index", () => {
     expect(initFirebase).toHaveBeenCalledWith("mock-db-url");
     expect(registerSlashCommands).toHaveBeenCalledWith(
       "mock-token",
-      "mock-client-id"
+      "mock-client-id",
     );
     expect(logSpy).toHaveBeenCalledWith("Logged in as Bot#1234");
   });

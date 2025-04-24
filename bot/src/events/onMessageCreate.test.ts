@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, test, vi, beforeEach } from "vitest";
 import { User, Message, TextChannel } from "discord.js";
 import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
@@ -142,7 +142,7 @@ describe("onMessageCreate", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(sendMock).toHaveBeenCalledWith(
-      "One or more users couldn't be found. Please try again"
+      "One or more users couldn't be found. Please try again",
     );
   });
 
@@ -189,14 +189,14 @@ describe("onMessageCreate", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(sendMock).toHaveBeenCalledWith(
-      `Family tree updated! Added ${mockChildNickname} to ${mockParentNickname}`
+      `Family tree updated! Added ${mockChildNickname} to ${mockParentNickname}`,
     );
     expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 
   test("Should call channel.send with handled error when API fails", async () => {
     vi.spyOn(resolver, "resolveUsernames").mockRejectedValueOnce(
-      new Error("Unknown User")
+      new Error("Unknown User"),
     );
     const mockMessage = Object.create(Message.prototype) as Message<true>;
     const channel = Object.create(TextChannel.prototype) as TextChannel;

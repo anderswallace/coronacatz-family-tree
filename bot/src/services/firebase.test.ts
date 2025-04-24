@@ -21,7 +21,7 @@ describe("firebase", () => {
     const mockGetApps = getApps as Mock;
     const mockInitializeApp = initializeApp as Mock;
     const mockGetDatabase = getDatabase as Mock;
-    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => { });
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
     const mockUrl = "https://mock.firebaseio.com";
     const mockDb = { name: "db" };
@@ -51,5 +51,5 @@ describe("firebase", () => {
     initFirebase(mockUrl);
 
     expect(mockGetDatabase).toHaveBeenCalledWith();
-  })
+  });
 });
