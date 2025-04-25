@@ -25,7 +25,8 @@ export async function createNodeFromParent(
   const result = TreeSchema.safeParse(rawNode);
 
   if (!result.success) {
-    throw new Error(`Invalid TreeNode: ${result.error.message}`);
+    const errorMessage = result.error.issues[0].message;
+    throw new Error(`Invalid TreeNode: ${errorMessage}`);
   }
 
   return result.data;
