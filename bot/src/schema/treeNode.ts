@@ -5,7 +5,7 @@ export const TreeSchema = z.object({
   name: z.string(),
   parentId: z.string(),
   group: z.string(),
-  color: z.string().regex(/^#[0-9a-f]{6}$/i, "Color must be a hex code"),
+  color: z.string().regex(/^#[0-9a-f]{6}$/i, "Color must be a valid hex code"),
 });
 
 export type Node = z.infer<typeof TreeSchema>;

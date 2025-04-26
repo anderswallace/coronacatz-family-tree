@@ -39,7 +39,6 @@ export function createOnMessageCreate(
 
       const { childUsername, parentUsername } = resolvedNames;
 
-      // TODO: call DB functions here to update tree
       const childNode = await createNodeFromParent(
         childId,
         childUsername,

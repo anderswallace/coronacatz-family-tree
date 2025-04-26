@@ -15,10 +15,8 @@ export async function fetchNodeById(
   const result = TreeSchema.safeParse(raw);
 
   if (!result.success) {
-    console.error("Zod validation failed: ", result.error.format());
-    throw new Error(
-      `Invalid Node data for user ${userId}: ${result.error.message}`,
-    );
+    const errorMessage = result.error.issues[0].message;
+    throw new Error(`Invalid Node data for user ${userId}: ${errorMessage}`);
   }
 
   return result.data;
@@ -30,7 +28,8 @@ export async function uploadNode(
 ): Promise<void> {
   const result = TreeSchema.safeParse(node);
   if (!result.success) {
-    throw new Error(`Invalid Node data: ${result.error.message}`);
+    const errorMessage = result.error.issues[0].message;
+    throw new Error(`Invalid Node data: ${errorMessage}`);
   }
 
   const updates: Record<string, unknown> = {
@@ -38,5 +37,6 @@ export async function uploadNode(
     [`/children/${node.parentId}/${node.userId}`]: true,
   };
 
+  // TODO: create error handling for failed updates to database
   await update(ref(database), updates);
 }

@@ -64,7 +64,7 @@ describe("createNodeFromParent", () => {
     const mockParentId = "mock-parent-id";
     const mockGroup = "mock-group";
     const mockColor = "#ffff"; // incorrect length color to throw error
-    const errorMessage = `Invalid TreeNode: Color must be a hex code`;
+    const errorMessage = `Invalid TreeNode: Color must be a valid hex code`;
 
     // Mock valid node being returned from Firebase
     (fetchNodeById as Mock).mockReturnValueOnce({
