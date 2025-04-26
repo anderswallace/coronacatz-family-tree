@@ -37,6 +37,5 @@ export async function uploadNode(
     [`/children/${node.parentId}/${node.userId}`]: true,
   };
 
-  // TODO: create error handling for failed updates to database
   await update(ref(database), updates);
 }
