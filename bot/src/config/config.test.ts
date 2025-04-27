@@ -1,5 +1,6 @@
 import { describe, expect, test, vi, afterEach } from "vitest";
 import { getConfig } from "./config.js";
+import { ConfigError } from "../errors/customErrors.js";
 
 describe("config", () => {
   afterEach(() => {
@@ -29,8 +30,6 @@ describe("config", () => {
   test("Should throw error when .env secrets are missing", async () => {
     const env = {};
 
-    expect(() => getConfig(env)).toThrowError(
-      "Missing required environment variable: DISCORD_TOKEN",
-    );
+    expect(() => getConfig(env)).toThrowError(ConfigError);
   });
 });

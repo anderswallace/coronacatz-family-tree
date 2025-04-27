@@ -1,3 +1,4 @@
+import { NodeError, UserNotFoundError } from "../errors/customErrors.js";
 import { TreeSchema, Node } from "../schema/treeNode.js";
 import { fetchNodeById } from "../services/databaseService.js";
 import { Database } from "firebase/database";
@@ -6,11 +7,11 @@ export async function createNodeFromParent(
   userId: string,
   name: string,
   parentId: string,
-  database: Database,
+  database: Database
 ): Promise<Node> {
   const parent = await fetchNodeById(parentId, database);
   if (!parent) {
-    throw new Error(`Parent with ID ${parentId} not found`);
+    throw new UserNotFoundError(parentId);
   }
 
   // construct new node while inheriting group from parent
@@ -26,7 +27,7 @@ export async function createNodeFromParent(
 
   if (!result.success) {
     const errorMessage = result.error.issues[0].message;
-    throw new Error(`Invalid TreeNode: ${errorMessage}`);
+    throw new NodeError(userId, errorMessage);
   }
 
   return result.data;

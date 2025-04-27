@@ -1,14 +1,15 @@
 import { ref, get, update, Database } from "firebase/database";
 import { Node, TreeSchema } from "../schema/treeNode.js";
+import { UserNotFoundError, NodeError } from "../errors/customErrors.js";
 
 export async function fetchNodeById(
   userId: string,
-  database: Database,
+  database: Database
 ): Promise<Node> {
   const snapshot = await get(ref(database, `users/${userId}`));
 
   if (!snapshot.exists()) {
-    throw new Error(`User with ID ${userId} not found in the database`);
+    throw new UserNotFoundError(userId);
   }
 
   const raw = snapshot.val();
@@ -16,7 +17,7 @@ export async function fetchNodeById(
 
   if (!result.success) {
     const errorMessage = result.error.issues[0].message;
-    throw new Error(`Invalid Node data for user ${userId}: ${errorMessage}`);
+    throw new NodeError(userId, errorMessage);
   }
 
   return result.data;
@@ -24,12 +25,12 @@ export async function fetchNodeById(
 
 export async function uploadNode(
   node: Node,
-  database: Database,
+  database: Database
 ): Promise<void> {
   const result = TreeSchema.safeParse(node);
   if (!result.success) {
     const errorMessage = result.error.issues[0].message;
-    throw new Error(`Invalid Node data: ${errorMessage}`);
+    throw new NodeError(node.userId, errorMessage);
   }
 
   const updates: Record<string, unknown> = {

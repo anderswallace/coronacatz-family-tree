@@ -2,6 +2,7 @@ import { describe, test, expect, vi, Mock, afterEach } from "vitest";
 import { Database } from "firebase/database";
 import { fetchNodeById } from "../services/databaseService.js";
 import { createNodeFromParent } from "./createNodeFromParent.js";
+import { NodeError, UserNotFoundError } from "../errors/customErrors.js";
 
 vi.mock("../services/databaseService.js", () => ({
   fetchNodeById: vi.fn(),
@@ -34,7 +35,7 @@ describe("createNodeFromParent", () => {
       mockUserId,
       mockName,
       mockParentId,
-      mockDb,
+      mockDb
     );
     expect(data.userId).toEqual(mockUserId);
     expect(data.name).toEqual(mockName);
@@ -47,14 +48,13 @@ describe("createNodeFromParent", () => {
     const mockUserId = "mock-user-id";
     const mockName = "mock-name";
     const mockParentId = "mock-parent-id";
-    const errorMessage = `Parent with ID ${mockParentId} not found`;
 
     // Mock fetchNode returning as null to simulate parent not being found
     (fetchNodeById as Mock).mockReturnValueOnce(null);
 
     await expect(
-      createNodeFromParent(mockUserId, mockName, mockParentId, mockDb),
-    ).rejects.toThrow(errorMessage);
+      createNodeFromParent(mockUserId, mockName, mockParentId, mockDb)
+    ).rejects.toThrow(UserNotFoundError);
   });
 
   test("Should throw error when database data shape does not match schema", async () => {
@@ -64,7 +64,6 @@ describe("createNodeFromParent", () => {
     const mockParentId = "mock-parent-id";
     const mockGroup = "mock-group";
     const mockColor = "#ffff"; // incorrect length color to throw error
-    const errorMessage = `Invalid TreeNode: Color must be a valid hex code`;
 
     // Mock valid node being returned from Firebase
     (fetchNodeById as Mock).mockReturnValueOnce({
@@ -76,7 +75,7 @@ describe("createNodeFromParent", () => {
     });
 
     await expect(
-      createNodeFromParent(mockUserId, mockName, mockParentId, mockDb),
-    ).rejects.toThrow(errorMessage);
+      createNodeFromParent(mockUserId, mockName, mockParentId, mockDb)
+    ).rejects.toThrow(NodeError);
   });
 });

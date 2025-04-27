@@ -1,6 +1,7 @@
 import { describe, test, expect, vi, Mock, afterEach } from "vitest";
 import { get, ref, update, Database } from "firebase/database";
 import { fetchNodeById, uploadNode } from "./databaseService.js";
+import { NodeError, UserNotFoundError } from "../errors/customErrors.js";
 
 vi.mock("firebase/database", () => ({
   ref: vi.fn(),
@@ -61,7 +62,7 @@ describe("databaseService", () => {
     (get as Mock).mockReturnValueOnce(mockSnapshot);
 
     await expect(fetchNodeById(mockUserId, mockDb)).rejects.toThrow(
-      `User with ID ${mockUserId} not found in the database`,
+      UserNotFoundError
     );
   });
 
@@ -86,9 +87,7 @@ describe("databaseService", () => {
     // mock valid return from database
     (get as Mock).mockReturnValueOnce(mockSnapshot);
 
-    await expect(fetchNodeById(mockUserId, mockDb)).rejects.toThrow(
-      `Invalid Node data for user ${mockUserId}: Color must be a valid hex code`,
-    );
+    await expect(fetchNodeById(mockUserId, mockDb)).rejects.toThrow(NodeError);
   });
 
   test("uploadNode should upload valid node to database", async () => {
@@ -137,6 +136,6 @@ describe("databaseService", () => {
       color: mockColor,
     };
 
-    await expect(uploadNode(mockNode, mockDb)).rejects.toThrow(errorMessage);
+    await expect(uploadNode(mockNode, mockDb)).rejects.toThrow(NodeError);
   });
 });
