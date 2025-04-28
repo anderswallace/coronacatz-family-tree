@@ -1,5 +1,6 @@
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, test, vi, afterEach } from "vitest";
 import { getConfig } from "./config.js";
+import { ConfigError } from "../errors/customErrors.js";
 
 describe("config", () => {
   afterEach(() => {
@@ -11,6 +12,9 @@ describe("config", () => {
       DISCORD_TOKEN: "mock-token",
       CLIENT_ID: "mock-client-id",
       TARGET_CHANNEL: "mock-target-channel",
+      FIREBASE_DB_URL: "mock-db-url",
+      FIREBASE_PROJECT_ID: "mock-project-id",
+      FIREBASE_API_KEY: "mock-api-key",
     };
 
     const config = getConfig(env);
@@ -18,13 +22,14 @@ describe("config", () => {
     expect(config.discordToken).toBe("mock-token");
     expect(config.clientId).toBe("mock-client-id");
     expect(config.targetChannel).toBe("mock-target-channel");
+    expect(config.firebaseDbUrl).toBe("mock-db-url");
+    expect(config.firebaseProjectId).toBe("mock-project-id");
+    expect(config.firebaseApiKey).toBe("mock-api-key");
   });
 
   test("Should throw error when .env secrets are missing", async () => {
     const env = {};
 
-    expect(() => getConfig(env)).toThrowError(
-      "Missing required environment variable: DISCORD_TOKEN"
-    );
+    expect(() => getConfig(env)).toThrowError(ConfigError);
   });
 });

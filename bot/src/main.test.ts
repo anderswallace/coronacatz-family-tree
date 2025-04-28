@@ -1,6 +1,7 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, test, expect, vi } from "vitest";
 import { main } from "./main.js";
 import { registerSlashCommands } from "./core/registerCommands.js";
+import { initFirebase } from "./services/database/firebase.js";
 
 const mockLogin = vi.fn();
 const mockOnce = vi.fn();
@@ -18,11 +19,20 @@ vi.mock("./core/events.js", () => {
   };
 });
 
+vi.mock("./services/database/firebase.ts", () => {
+  return {
+    initFirebase: vi.fn(),
+  };
+});
+
 vi.mock("./config/config.js", () => ({
   getConfig: vi.fn(() => ({
     discordToken: "mock-token",
     clientId: "mock-client-id",
     targetChannel: "mock-channel",
+    firebaseDbUrl: "mock-db-url",
+    firebaseProjectId: "mock-project-id",
+    firebaseApiKey: "mock-api-key",
   })),
 }));
 
@@ -48,9 +58,14 @@ describe("index", () => {
 
     await main();
 
+    expect(initFirebase).toHaveBeenCalledWith(
+      "mock-db-url",
+      "mock-project-id",
+      "mock-api-key",
+    );
     expect(registerSlashCommands).toHaveBeenCalledWith(
       "mock-token",
-      "mock-client-id"
+      "mock-client-id",
     );
     expect(logSpy).toHaveBeenCalledWith("Logged in as Bot#1234");
   });

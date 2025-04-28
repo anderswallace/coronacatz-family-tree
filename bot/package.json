@@ -19,7 +19,9 @@
   "dependencies": {
     "discord.js": "^14.18.0",
     "dotenv": "^16.4.7",
-    "firebase-admin": "^13.2.0"
+    "firebase": "^11.6.0",
+    "firebase-admin": "^13.2.0",
+    "zod": "^3.24.3"
   },
   "devDependencies": {
     "@stryker-mutator/vitest-runner": "^8.7.1",
