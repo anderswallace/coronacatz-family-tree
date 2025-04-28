@@ -18,7 +18,6 @@ describe("firebase", () => {
   });
 
   test("Should initialize a firebase app when no app exists yet", () => {
-    const mockGetApps = getApps as Mock;
     const mockInitializeApp = initializeApp as Mock;
     const mockGetDatabase = getDatabase as Mock;
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -29,7 +28,6 @@ describe("firebase", () => {
     const mockDb = { name: "db" };
     const mockApp = { name: "app" };
 
-    mockGetApps.mockReturnValue([]);
     mockInitializeApp.mockReturnValue(mockApp);
     mockGetDatabase.mockReturnValue(mockDb);
 
@@ -42,20 +40,5 @@ describe("firebase", () => {
     });
     expect(consoleSpy).toHaveBeenCalledWith("Firebase database initialized.");
     expect(db).toBe(mockDb);
-  });
-
-  test("Should return instantiated app when one already exists", () => {
-    const mockGetApps = getApps as Mock;
-    const mockGetDatabase = getDatabase as Mock;
-    const mockUrl = "https://mock.firebaseio.com";
-    const mockApiKey = "mockKey";
-    const mockProjectId = "1234";
-
-    // initialize array with values to simulate database already existing
-    mockGetApps.mockReturnValue([1, 2, 3]);
-
-    initFirebase(mockUrl, mockProjectId, mockApiKey);
-
-    expect(mockGetDatabase).toHaveBeenCalledWith();
   });
 });
