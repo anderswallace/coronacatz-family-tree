@@ -1,12 +1,10 @@
 import { Message, TextChannel } from "discord.js";
 import { parseAddMessage } from "../utils/parseAddMessage.js";
 import { resolveUsernames } from "../utils/resolveUsernames.js";
-import { Database } from "firebase/database";
-import { createNodeFromParent } from "../utils/createNodeFromParent.js";
-import { uploadNode } from "../services/databaseService.js";
+import { ServiceContainer } from "../services/index.js";
 
 export function createOnMessageCreate(
-  database: Database,
+  services: ServiceContainer,
   targetChannelName: string,
 ) {
   return async function onMessageCreate(message: Message) {
@@ -39,13 +37,12 @@ export function createOnMessageCreate(
 
       const { childUsername, parentUsername } = resolvedNames;
 
-      const childNode = await createNodeFromParent(
+      const childNode = await services.treeService.createNodeFromParent(
         childId,
         childUsername,
         parentId,
-        database,
       );
-      await uploadNode(childNode, database);
+      await services.databaseService.uploadNode(childNode);
 
       await channel.send(
         `Family tree updated! Added ${childUsername} to ${parentUsername}`,

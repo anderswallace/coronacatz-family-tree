@@ -22,7 +22,6 @@ describe("customError", () => {
       throw new NodeError(mockId, mockMessage);
     } catch (error) {
       if (error instanceof NodeError) {
-        console.log(error.message);
         expect(error.message.includes(mockId)).toBe(true);
         expect(error.message.includes(mockMessage)).toBe(true);
       } else {

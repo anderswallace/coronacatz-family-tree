@@ -4,15 +4,9 @@ import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
 import { createOnMessageCreate } from "./onMessageCreate.js";
 import { Database } from "firebase/database";
-import { createNodeFromParent } from "../utils/createNodeFromParent.js";
-import { uploadNode } from "../services/databaseService.js";
+import { ServiceContainer } from "../services/index.js";
 
 vi.mock("../utils/resolveUsernames");
-
-vi.mock("../utils/createNodeFromParent", () => ({
-  createNodeFromParent: vi.fn(),
-  uploadNode: vi.fn(),
-}));
 
 vi.mock("../services/databaseService", () => ({
   uploadNode: vi.fn(),
@@ -20,6 +14,15 @@ vi.mock("../services/databaseService", () => ({
 
 const targetChannel = "family-tree";
 const mockDb = {} as unknown as Database;
+
+const mockServices = {
+  treeService: {
+    createNodeFromParent: vi.fn(),
+  },
+  databaseService: {
+    uploadNode: vi.fn(),
+  },
+} as unknown as ServiceContainer;
 
 describe("onMessageCreate", () => {
   beforeEach(() => {
@@ -48,7 +51,7 @@ describe("onMessageCreate", () => {
       value: channel,
     });
 
-    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
     onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
@@ -76,7 +79,7 @@ describe("onMessageCreate", () => {
       value: channel,
     });
 
-    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
     onMessageCreate(mockMessage);
     expect(parserSpy).not.toHaveBeenCalled();
@@ -108,7 +111,7 @@ describe("onMessageCreate", () => {
       value: channel,
     });
 
-    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
     onMessageCreate(mockMessage);
     expect(resolverSpy).not.toHaveBeenCalled();
@@ -145,7 +148,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -168,14 +171,16 @@ describe("onMessageCreate", () => {
     const mockMessage = Object.create(Message.prototype) as Message<true>;
     const channel = Object.create(TextChannel.prototype) as TextChannel;
 
-    (createNodeFromParent as Mock).mockResolvedValue({
+    (mockServices.treeService.createNodeFromParent as Mock).mockResolvedValue({
       userId: "mock-id",
       name: "mock-name",
       parentId: "mock-parent",
       group: "mock-group",
       color: "#99ccff",
     });
-    (uploadNode as Mock).mockResolvedValue(undefined);
+    (mockServices.databaseService.uploadNode as Mock).mockResolvedValue(
+      undefined,
+    );
 
     Object.defineProperty(mockMessage, "author", {
       value: {
@@ -202,7 +207,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -247,7 +252,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
     onMessageCreate(mockMessage);
 
@@ -290,7 +295,7 @@ describe("onMessageCreate", () => {
     const deleteMock = vi.fn();
     mockMessage.delete = deleteMock;
 
-    const onMessageCreate = createOnMessageCreate(mockDb, targetChannel);
+    const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
     onMessageCreate(mockMessage);
 

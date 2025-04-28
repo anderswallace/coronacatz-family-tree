@@ -1,7 +1,8 @@
 import { describe, test, expect, vi, Mock, afterEach } from "vitest";
 import { get, ref, update, Database } from "firebase/database";
-import { fetchNodeById, uploadNode } from "./databaseService.js";
-import { NodeError, UserNotFoundError } from "../errors/customErrors.js";
+//import { fetchNodeById, uploadNode } from "./firebaseDatabaseService.js";
+import { NodeError, UserNotFoundError } from "../../errors/customErrors.js";
+import { FirebaseDatabaseService } from "./firebaseDatabaseService.js";
 
 vi.mock("firebase/database", () => ({
   ref: vi.fn(),
@@ -37,7 +38,9 @@ describe("databaseService", () => {
     // mock valid return from database
     (get as Mock).mockReturnValueOnce(mockSnapshot);
 
-    const node = await fetchNodeById(mockUserId, mockDb);
+    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+
+    const node = await mockDatabaseService.fetchNodeById(mockUserId);
 
     expect(node).toEqual({
       userId: mockUserId,
@@ -61,8 +64,10 @@ describe("databaseService", () => {
 
     (get as Mock).mockReturnValueOnce(mockSnapshot);
 
-    await expect(fetchNodeById(mockUserId, mockDb)).rejects.toThrow(
-      UserNotFoundError
+    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+
+    await expect(mockDatabaseService.fetchNodeById(mockUserId)).rejects.toThrow(
+      UserNotFoundError,
     );
   });
 
@@ -87,7 +92,11 @@ describe("databaseService", () => {
     // mock valid return from database
     (get as Mock).mockReturnValueOnce(mockSnapshot);
 
-    await expect(fetchNodeById(mockUserId, mockDb)).rejects.toThrow(NodeError);
+    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+
+    await expect(mockDatabaseService.fetchNodeById(mockUserId)).rejects.toThrow(
+      NodeError,
+    );
   });
 
   test("uploadNode should upload valid node to database", async () => {
@@ -105,7 +114,9 @@ describe("databaseService", () => {
       color: mockColor,
     };
 
-    await uploadNode(mockNode, mockDb);
+    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+
+    await mockDatabaseService.uploadNode(mockNode);
 
     expect(ref).toHaveBeenCalledWith(mockDb);
     expect(update).toHaveBeenCalledTimes(1);
@@ -126,7 +137,6 @@ describe("databaseService", () => {
     const mockParentId = "mock-parent-id";
     const mockGroup = "mock-group";
     const mockColor = "#ffff"; // invalid hex code to trigger Zod error
-    const errorMessage = "Invalid Node data: Color must be a valid hex code";
 
     const mockNode = {
       userId: mockUserId,
@@ -136,6 +146,10 @@ describe("databaseService", () => {
       color: mockColor,
     };
 
-    await expect(uploadNode(mockNode, mockDb)).rejects.toThrow(NodeError);
+    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+
+    await expect(mockDatabaseService.uploadNode(mockNode)).rejects.toThrow(
+      NodeError,
+    );
   });
 });

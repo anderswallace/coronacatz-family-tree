@@ -9,15 +9,17 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 import { setupAddListeners } from "./addListeners.js";
 import { createOnMessageCreate } from "../events/onMessageCreate.js";
 import { Database } from "firebase/database";
+import { ServiceContainer } from "../services/index.js";
 
 const mockCreateMessage = vi.fn();
+
+const mockServiceContainer = {} as unknown as ServiceContainer;
 
 vi.mock("../events/onMessageCreate.js", () => ({
   createOnMessageCreate: vi.fn(() => mockCreateMessage),
 }));
 
 const targetChannel = "family-tree";
-const mockDb = {} as unknown as Database;
 
 describe("addListeners", () => {
   beforeEach(() => {
@@ -52,9 +54,12 @@ describe("addListeners", () => {
       ],
     });
 
-    setupAddListeners(mockClient, mockDb, targetChannel);
+    setupAddListeners(mockClient, mockServiceContainer, targetChannel);
 
-    expect(createOnMessageCreate).toHaveBeenCalledWith(mockDb, targetChannel);
+    expect(createOnMessageCreate).toHaveBeenCalledWith(
+      mockServiceContainer,
+      targetChannel,
+    );
   });
 
   test("Should call onMessageCreate when message is emitted", () => {
@@ -85,7 +90,7 @@ describe("addListeners", () => {
       ],
     });
 
-    setupAddListeners(mockClient, mockDb, targetChannel);
+    setupAddListeners(mockClient, mockServiceContainer, targetChannel);
 
     mockClient.emit("messageCreate", mockMessage);
 

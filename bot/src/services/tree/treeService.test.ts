@@ -1,14 +1,14 @@
 import { describe, test, expect, vi, Mock, afterEach } from "vitest";
-import { Database } from "firebase/database";
-import { fetchNodeById } from "../services/databaseService.js";
-import { createNodeFromParent } from "./createNodeFromParent.js";
-import { NodeError, UserNotFoundError } from "../errors/customErrors.js";
+import { NodeError, UserNotFoundError } from "../../errors/customErrors.js";
+import { IDatabaseService } from "../database/IDatabaseService.js";
+import { TreeService } from "./treeService.js";
 
-vi.mock("../services/databaseService.js", () => ({
+const mockDatabaseService = {
   fetchNodeById: vi.fn(),
-}));
+  uploadNode: vi.fn(),
+} as unknown as IDatabaseService;
 
-const mockDb = {} as unknown as Database;
+const mockTreeService = new TreeService(mockDatabaseService);
 
 describe("createNodeFromParent", () => {
   afterEach(() => {
@@ -23,7 +23,7 @@ describe("createNodeFromParent", () => {
     const mockColor = "#ffffff";
 
     // Mock valid node being returned from Firebase
-    (fetchNodeById as Mock).mockReturnValueOnce({
+    (mockDatabaseService.fetchNodeById as Mock).mockReturnValueOnce({
       userId: mockParentId,
       name: "mock-parent-name",
       parentId: "5678",
@@ -31,11 +31,10 @@ describe("createNodeFromParent", () => {
       color: mockColor,
     });
 
-    const data = await createNodeFromParent(
+    const data = await mockTreeService.createNodeFromParent(
       mockUserId,
       mockName,
       mockParentId,
-      mockDb
     );
     expect(data.userId).toEqual(mockUserId);
     expect(data.name).toEqual(mockName);
@@ -50,10 +49,10 @@ describe("createNodeFromParent", () => {
     const mockParentId = "mock-parent-id";
 
     // Mock fetchNode returning as null to simulate parent not being found
-    (fetchNodeById as Mock).mockReturnValueOnce(null);
+    (mockDatabaseService.fetchNodeById as Mock).mockReturnValueOnce(null);
 
     await expect(
-      createNodeFromParent(mockUserId, mockName, mockParentId, mockDb)
+      mockTreeService.createNodeFromParent(mockUserId, mockName, mockParentId),
     ).rejects.toThrow(UserNotFoundError);
   });
 
@@ -66,7 +65,7 @@ describe("createNodeFromParent", () => {
     const mockColor = "#ffff"; // incorrect length color to throw error
 
     // Mock valid node being returned from Firebase
-    (fetchNodeById as Mock).mockReturnValueOnce({
+    (mockDatabaseService.fetchNodeById as Mock).mockReturnValueOnce({
       userId: mockParentId,
       name: "mock-parent-name",
       parentId: "5678",
@@ -75,7 +74,7 @@ describe("createNodeFromParent", () => {
     });
 
     await expect(
-      createNodeFromParent(mockUserId, mockName, mockParentId, mockDb)
+      mockTreeService.createNodeFromParent(mockUserId, mockName, mockParentId),
     ).rejects.toThrow(NodeError);
   });
 });

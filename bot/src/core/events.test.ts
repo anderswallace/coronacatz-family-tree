@@ -3,7 +3,7 @@ import { setupEvents } from "./events.js";
 import { Client, Events, Interaction } from "discord.js";
 import { setupAddListeners } from "../listeners/addListeners.js";
 import { handleHelpCommand } from "../commands/help.js";
-import { Database } from "firebase/database";
+import { ServiceContainer } from "../services/index.js";
 
 vi.mock("../listeners/addListeners", () => ({
   setupAddListeners: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock("../commands/help", () => ({
 }));
 
 const targetChannel = "family-tree";
-const mockDb = {} as unknown as Database;
+const mockServicesContainer = {} as unknown as ServiceContainer;
 
 describe("setupEvents", () => {
   let client: Client;
@@ -25,16 +25,16 @@ describe("setupEvents", () => {
   });
 
   test("Should call setupAddListeners", () => {
-    setupEvents(client, mockDb, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel);
     expect(setupAddListeners).toHaveBeenCalledWith(
       client,
-      mockDb,
-      targetChannel
+      mockServicesContainer,
+      targetChannel,
     );
   });
 
   test("Should call handleHelpCommand when interaction is a chat interaction with 'help' in command", () => {
-    setupEvents(client, mockDb, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel);
 
     const mockInteraction = {
       isChatInputCommand: () => true,
@@ -47,7 +47,7 @@ describe("setupEvents", () => {
   });
 
   test("Should not call handleHelpCommand for non-chat interactions", () => {
-    setupEvents(client, mockDb, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel);
 
     const mockInteraction = {
       isChatInputCommand: () => false,
@@ -59,7 +59,7 @@ describe("setupEvents", () => {
   });
 
   test("Should not call handleHelpCommand for chat interaction that is not help command", () => {
-    setupEvents(client, mockDb, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel);
 
     const mockInteraction = {
       isChatInputCommand: () => true,

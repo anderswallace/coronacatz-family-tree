@@ -1,7 +1,7 @@
 import { describe, test, expect, vi } from "vitest";
 import { main } from "./main.js";
 import { registerSlashCommands } from "./core/registerCommands.js";
-import { initFirebase } from "./services/firebase.js";
+import { initFirebase } from "./services/database/firebase.js";
 
 const mockLogin = vi.fn();
 const mockOnce = vi.fn();
@@ -19,7 +19,7 @@ vi.mock("./core/events.js", () => {
   };
 });
 
-vi.mock("./services/firebase.ts", () => {
+vi.mock("./services/database/firebase.ts", () => {
   return {
     initFirebase: vi.fn(),
   };
