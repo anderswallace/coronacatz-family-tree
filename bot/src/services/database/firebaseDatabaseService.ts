@@ -38,4 +38,8 @@ export class FirebaseDatabaseService implements IDatabaseService {
 
     await update(ref(this.database), updates);
   }
+
+  async removeNode(userId: string): Promise<void> {
+    // TODO: Implement remove logic here
+  }
 }
