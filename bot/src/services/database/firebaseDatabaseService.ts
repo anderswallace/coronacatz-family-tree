@@ -40,6 +40,31 @@ export class FirebaseDatabaseService implements IDatabaseService {
   }
 
   async removeNode(userId: string): Promise<void> {
-    // TODO: Implement remove logic here
+    const user = await this.fetchNodeById(userId);
+    const parentId = user.parentId;
+
+    const childrenSnapshot = await get(
+      ref(this.database, `children/${userId}`),
+    );
+
+    const updates: Record<string, unknown> = {};
+
+    if (childrenSnapshot.exists()) {
+      const childrenIds = Object.keys(childrenSnapshot.val());
+
+      // update each child's parentId and remove from node to be deleted
+      for (const childId of childrenIds) {
+        updates[`/users/${childId}/parentId`] = parentId;
+        updates[`/children/${parentId}/${childId}`] = true;
+        updates[`/children/${userId}/`] = null;
+      }
+    }
+
+    // remove user and their reference from parent's children list
+    updates[`/users/${userId}`] = null;
+    updates[`/children/${parentId}/${userId}`] = null;
+
+    // apply all updates in one atomic operation
+    await update(ref(this.database), updates);
   }
 }
