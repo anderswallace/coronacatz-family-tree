@@ -10,6 +10,7 @@ describe("client", () => {
 
     const expectedIntents = new IntentsBitField([
       GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
     ]);

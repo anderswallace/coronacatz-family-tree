@@ -3,7 +3,6 @@ import { User, Message, TextChannel } from "discord.js";
 import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
 import { createOnMessageCreate } from "./onMessageCreate.js";
-import { Database } from "firebase/database";
 import { ServiceContainer } from "../services/index.js";
 
 vi.mock("../utils/resolveUsernames");
@@ -13,7 +12,6 @@ vi.mock("../services/databaseService", () => ({
 }));
 
 const targetChannel = "family-tree";
-const mockDb = {} as unknown as Database;
 
 const mockServices = {
   treeService: {

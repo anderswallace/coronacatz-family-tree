@@ -1,6 +1,6 @@
 import { describe, expect, test, vi, afterEach, Mock } from "vitest";
 import { initFirebase } from "./firebase.js";
-import { getApps, initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
 vi.mock("firebase/app", () => ({

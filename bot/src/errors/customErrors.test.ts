@@ -8,6 +8,7 @@ describe("customError", () => {
       throw new UserNotFoundError(mockId);
     } catch (error) {
       if (error instanceof UserNotFoundError) {
+        expect(error.name).toBe("UserNotFoundError");
         expect(error.message.includes(mockId)).toBe(true);
       } else {
         throw error;
@@ -22,6 +23,7 @@ describe("customError", () => {
       throw new NodeError(mockId, mockMessage);
     } catch (error) {
       if (error instanceof NodeError) {
+        expect(error.name).toBe("NodeError");
         expect(error.message.includes(mockId)).toBe(true);
         expect(error.message.includes(mockMessage)).toBe(true);
       } else {
@@ -36,6 +38,7 @@ describe("customError", () => {
       throw new ConfigError(mockId);
     } catch (error) {
       if (error instanceof ConfigError) {
+        expect(error.name).toBe("ConfigError");
         expect(error.message.includes(mockId)).toBe(true);
       } else {
         throw error;
