@@ -153,7 +153,7 @@ describe("databaseService", () => {
     );
   });
 
-  test("removeNode should update database to remove selected user", async () => {
+  test("removeNode should update database with only two commands when removing user with no children", async () => {
     const mockUser: Node = {
       userId: "mock-user",
       name: "mock-name",
@@ -181,6 +181,7 @@ describe("databaseService", () => {
     const [refArg, updatesArg] = (update as Mock).mock.calls[0];
 
     expect(refArg).toEqual(undefined);
+    expect(Object.keys(updatesArg)).toHaveLength(2);
     expect(updatesArg).toEqual({
       [`/users/${mockUser.userId}`]: null,
       [`/children/${mockUser.parentId}/${mockUser.userId}`]: null,
