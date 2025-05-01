@@ -5,12 +5,8 @@
       "name": "Anders",
       "parentId": "ROOT",
       "group": "test-group",
-      "color": "#99ccff"
-    }
-  },
-  "children": {
-    "ROOT": {
-      "285270008458903552": true
+      "color": "#99ccff",
+      "children": []
     }
   }
 }

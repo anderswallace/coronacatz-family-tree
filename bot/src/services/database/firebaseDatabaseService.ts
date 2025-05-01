@@ -33,36 +33,45 @@ export class FirebaseDatabaseService implements IDatabaseService {
 
     const updates: Record<string, unknown> = {
       [`/users/${node.userId}`]: node,
-      [`/children/${node.parentId}/${node.userId}`]: true,
     };
+
+    const parent = await this.fetchNodeById(node.parentId);
+    if (!parent.children.includes(node.userId)) {
+      parent.children.push(node.userId);
+      updates[`/users/${parent.userId}`] = parent;
+    }
 
     await update(ref(this.database), updates);
   }
 
   async removeNode(userId: string): Promise<void> {
     const user = await this.fetchNodeById(userId);
-    const parentId = user.parentId;
-
-    const childrenSnapshot = await get(
-      ref(this.database, `children/${userId}`),
-    );
+    const parent = await this.fetchNodeById(user.parentId);
+    const children = user.children;
 
     const updates: Record<string, unknown> = {};
 
-    if (childrenSnapshot.exists()) {
-      const childrenIds = Object.keys(childrenSnapshot.val());
+    if (children.length > 0) {
+      // update the parent ID of each child
+      for (const childId of children) {
+        const child = await this.fetchNodeById(childId);
+        child.parentId = parent.userId;
 
-      // update each child's parentId and remove from node to be deleted
-      for (const childId of childrenIds) {
-        updates[`/users/${childId}/parentId`] = parentId;
-        updates[`/children/${parentId}/${childId}`] = true;
-        updates[`/children/${userId}/`] = null;
+        // update parent's children list to include reparented child node
+        if (!parent.children.includes(childId)) {
+          parent.children.push(childId);
+        }
+
+        updates[`/users/${childId}`] = child;
       }
     }
 
-    // remove user and their reference from parent's children list
+    // remove user to be deleted from parent's children list
+    parent.children = parent.children.filter((id) => id !== userId);
+    updates[`/users/${parent.userId}`] = parent;
+
+    // delete specified node
     updates[`/users/${userId}`] = null;
-    updates[`/children/${parentId}/${userId}`] = null;
 
     // apply all updates in one atomic operation
     await update(ref(this.database), updates);

@@ -22,6 +22,7 @@ export class TreeService {
       parentId: parent.userId,
       group: parent.group,
       color: parent.color,
+      children: [],
     };
 
     const result = TreeSchema.safeParse(rawNode);

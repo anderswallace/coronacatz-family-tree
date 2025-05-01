@@ -32,6 +32,7 @@ describe("databaseService", () => {
         parentId: mockParentId,
         group: mockGroup,
         color: mockColor,
+        children: [],
       }),
     };
 
@@ -48,6 +49,7 @@ describe("databaseService", () => {
       parentId: mockParentId,
       group: mockGroup,
       color: mockColor,
+      children: [],
     });
     expect(ref).toHaveBeenCalledWith(mockDb, `users/${mockUserId}`);
     expect(get).toHaveBeenCalledTimes(1);
@@ -86,6 +88,7 @@ describe("databaseService", () => {
         parentId: mockParentId,
         group: mockGroup,
         color: mockColor,
+        children: [],
       }),
     };
 
@@ -106,15 +109,45 @@ describe("databaseService", () => {
     const mockGroup = "mock-group";
     const mockColor = "#ffffff";
 
+    const mockSnapshot = {
+      exists: vi.fn().mockReturnValue(true),
+      val: vi.fn().mockReturnValue({
+        userId: mockUserId,
+        name: mockName,
+        parentId: mockParentId,
+        group: mockGroup,
+        color: mockColor,
+        children: [],
+      }),
+    };
+
     const mockNode = {
       userId: mockUserId,
       name: mockName,
       parentId: mockParentId,
       group: mockGroup,
       color: mockColor,
+      children: [],
     };
 
+    const mockParentNode = {
+      userId: "mock-parent-id",
+      name: "mock-parent-name",
+      parentId: "mock-parent-id",
+      group: "mock-group",
+      color: "ffffff",
+      children: [],
+    };
+
+    // mock valid return from database
+    (get as Mock).mockReturnValueOnce(mockSnapshot);
+
     const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+
+    // Mock returning a parent node
+    vi.spyOn(mockDatabaseService, "fetchNodeById").mockResolvedValueOnce(
+      mockParentNode,
+    );
 
     await mockDatabaseService.uploadNode(mockNode);
 
@@ -125,9 +158,14 @@ describe("databaseService", () => {
     const [refArg, updatesArg] = (update as Mock).mock.calls[0];
 
     expect(refArg).toEqual(undefined);
+
+    // assert parent array was updated to include child
     expect(updatesArg).toEqual({
       [`/users/${mockUserId}`]: mockNode,
-      [`/children/${mockParentId}/${mockUserId}`]: true,
+      [`/users/${mockParentId}`]: {
+        ...mockParentNode,
+        children: [mockNode.userId],
+      },
     });
   });
 
@@ -136,14 +174,15 @@ describe("databaseService", () => {
     const mockName = "mock-name";
     const mockParentId = "mock-parent-id";
     const mockGroup = "mock-group";
-    const mockColor = "#ffff"; // invalid hex code to trigger Zod error
+    const INVALID_HEX_CODE = "#ffff"; // invalid hex code to trigger Zod error
 
     const mockNode = {
       userId: mockUserId,
       name: mockName,
       parentId: mockParentId,
       group: mockGroup,
-      color: mockColor,
+      color: INVALID_HEX_CODE,
+      children: [],
     };
 
     const mockDatabaseService = new FirebaseDatabaseService(mockDb);
@@ -160,17 +199,24 @@ describe("databaseService", () => {
       parentId: "mock-parent-id",
       group: "mock-group",
       color: "mock-color",
+      children: [],
+    };
+
+    const mockParent: Node = {
+      userId: "mock-parent",
+      name: "mock-parent-name",
+      parentId: "mock-parent-id",
+      group: "mock-group",
+      color: "mock-color",
+      children: ["mock-user"],
     };
 
     const mockService = new FirebaseDatabaseService(mockDb);
-    vi.spyOn(mockService, "fetchNodeById").mockResolvedValueOnce(mockUser);
 
-    const mockChildrenSnapshot = {
-      exists: () => true,
-      val: () => ({}),
-    };
-
-    (get as Mock).mockResolvedValueOnce(mockChildrenSnapshot);
+    // mock two return calls as user and parent of user
+    vi.spyOn(mockService, "fetchNodeById")
+      .mockResolvedValueOnce(mockUser)
+      .mockResolvedValueOnce(mockParent);
 
     await mockService.removeNode(mockUser.userId);
 
@@ -183,8 +229,11 @@ describe("databaseService", () => {
     expect(refArg).toEqual(undefined);
     expect(Object.keys(updatesArg)).toHaveLength(2);
     expect(updatesArg).toEqual({
+      [`/users/${mockParent.userId}`]: {
+        ...mockParent,
+        children: [],
+      },
       [`/users/${mockUser.userId}`]: null,
-      [`/children/${mockUser.parentId}/${mockUser.userId}`]: null,
     });
   });
 
@@ -195,17 +244,42 @@ describe("databaseService", () => {
       parentId: "mock-parent-id",
       group: "mock-group",
       color: "mock-color",
+      children: ["childA", "childB"],
+    };
+
+    const childA: Node = {
+      userId: "childA",
+      name: "child-a",
+      parentId: "mock-user",
+      group: "mock-group",
+      color: "mock-color",
+      children: [],
+    };
+
+    const childB: Node = {
+      userId: "childB",
+      name: "child-b",
+      parentId: "mock-user",
+      group: "mock-group",
+      color: "mock-color",
+      children: [],
+    };
+
+    const mockParent: Node = {
+      userId: "mock-parent",
+      name: "mock-parent-name",
+      parentId: "mock-parent-id",
+      group: "mock-group",
+      color: "mock-color",
+      children: ["mock-user"],
     };
 
     const mockService = new FirebaseDatabaseService(mockDb);
-    vi.spyOn(mockService, "fetchNodeById").mockResolvedValueOnce(mockUser);
-
-    const mockChildrenSnapshot = {
-      exists: () => true,
-      val: () => ({ childA: true, childB: true }),
-    };
-
-    (get as Mock).mockResolvedValueOnce(mockChildrenSnapshot);
+    vi.spyOn(mockService, "fetchNodeById")
+      .mockResolvedValueOnce(mockUser)
+      .mockResolvedValueOnce(mockParent)
+      .mockResolvedValueOnce(childA)
+      .mockResolvedValueOnce(childB);
 
     await mockService.removeNode(mockUser.userId);
 
@@ -217,14 +291,19 @@ describe("databaseService", () => {
 
     expect(refArg).toEqual(undefined);
     expect(updatesArg).toEqual({
-      [`/users/childA/parentId`]: mockUser.parentId,
-      [`/children/${mockUser.parentId}/childA`]: true,
-      [`/children/${mockUser.userId}/`]: null,
-      [`/users/childB/parentId`]: mockUser.parentId,
-      [`/children/${mockUser.parentId}/childB`]: true,
-      [`/children/${mockUser.userId}/`]: null,
+      [`/users/${childA.userId}`]: {
+        ...childA,
+        parentId: mockParent.userId,
+      },
+      [`/users/${childB.userId}`]: {
+        ...childB,
+        parentId: mockParent.userId,
+      },
+      [`/users/${mockParent.userId}`]: {
+        ...mockParent,
+        children: [childA.userId, childB.userId],
+      },
       [`/users/${mockUser.userId}`]: null,
-      [`/children/${mockUser.parentId}/${mockUser.userId}`]: null,
     });
   });
 });
