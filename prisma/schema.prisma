@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// A node representing a user in the tree structure
+/// Each node stores its direct children as an array of Discord IDs
+model Node {
+  /// Discord ID of a user (primary key)
+  userId    String   @id
+  /// Assigned nickname of a user, if no nickname is assigned this defaults to global name or username
+  name      String
+  /// Discord ID of a 'parent' user to this node
+  parentId  String
+  /// Name of root node of the tree this user belongs to, used to group users into subtress under the 'Founders'
+  group     String
+  /// Color of this node, groups will share the same color
+  color     String
+  /// Array of Discord IDs who are 'descendants' of this user (i.e. leaf nodes of this subtree)
+  children  String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
