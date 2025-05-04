@@ -26,13 +26,7 @@ export class DatabaseService implements IDatabaseService {
     parentId: string,
     name: string,
   ): Promise<void> {
-    const parent = await this.prismaClient.node.findUnique({
-      where: { userId: parentId },
-    });
-
-    if (!parent) {
-      throw new UserNotFoundError(parentId);
-    }
+    const parent = await this.fetchNodeById(parentId);
 
     try {
       await this.prismaClient.node.create({

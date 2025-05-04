@@ -1,186 +1,146 @@
 import { describe, test, expect, vi, Mock, afterEach } from "vitest";
-import { UserNotFoundError } from "../../errors/customErrors.js";
+import {
+  UserNotFoundError,
+  PrismaOperationError,
+} from "../../errors/customErrors.js";
 import { PrismaClient, Node } from "@prisma/client";
+import { DatabaseService } from "./databaseService.js";
+
+const prismaMock = {
+  node: {
+    findUnique: vi.fn(),
+    create: vi.fn(),
+  },
+} as unknown as PrismaClient;
 
 describe("databaseService", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  /*test("fetchNodeById should return valid node when user exists in database", async () => {
-    const mockUserId = "mock-user";
-    const mockName = "mock-name";
-    const mockParentId = "mock-parent-id";
-    const mockGroup = "mock-group";
-    const mockColor = "#ffffff";
-
-    const mockSnapshot = {
-      exists: vi.fn().mockReturnValue(true),
-      val: vi.fn().mockReturnValue({
-        userId: mockUserId,
-        name: mockName,
-        parentId: mockParentId,
-        group: mockGroup,
-        color: mockColor,
-        children: [],
-      }),
+  test("fetchNodeById should return valid node when user exists in database", async () => {
+    const mockNode: Node = {
+      userId: "mock-user",
+      name: "mock-name",
+      parentId: "mock-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    // mock valid return from database
-    (get as Mock).mockReturnValueOnce(mockSnapshot);
+    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockNode);
 
-    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+    const service = new DatabaseService(prismaMock);
+    const result = await service.fetchNodeById("mock-user");
 
-    const node = await mockDatabaseService.fetchNodeById(mockUserId);
-
-    expect(node).toEqual({
-      userId: mockUserId,
-      name: mockName,
-      parentId: mockParentId,
-      group: mockGroup,
-      color: mockColor,
-      children: [],
+    expect(result).toEqual(mockNode);
+    expect(prismaMock.node.findUnique).toHaveBeenCalledWith({
+      where: { userId: "mock-user" },
     });
-    expect(ref).toHaveBeenCalledWith(mockDb, `users/${mockUserId}`);
-    expect(get).toHaveBeenCalledTimes(1);
-    expect(mockSnapshot.exists).toHaveBeenCalledTimes(1);
-    expect(mockSnapshot.val).toHaveBeenCalledTimes(1);
   });
 
   test("fetchNodeById should throw error when user does not exists in database", async () => {
-    const mockUserId = "mock-user";
+    (prismaMock.node.findUnique as Mock).mockResolvedValue(null);
 
-    const mockSnapshot = {
-      exists: vi.fn().mockReturnValue(false),
-    };
-
-    (get as Mock).mockReturnValueOnce(mockSnapshot);
-
-    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
-
-    await expect(mockDatabaseService.fetchNodeById(mockUserId)).rejects.toThrow(
+    const service = new DatabaseService(prismaMock);
+    await expect(service.fetchNodeById("mock-user")).rejects.toThrow(
       UserNotFoundError,
     );
   });
 
-  test("fetchNodeById should throw error when returned data has invalid shape", async () => {
-    const mockUserId = "mock-user";
-    const mockName = "mock-name";
+  test("uploadNode should upload valid node to database when parent exists", async () => {
+    const mockUserId = "mock-user-id";
     const mockParentId = "mock-parent-id";
-    const mockGroup = "mock-group";
-    const mockColor = "#fffffffff"; // invalid hex code to cause Zod to fail
-
-    const mockSnapshot = {
-      exists: vi.fn().mockReturnValue(true),
-      val: vi.fn().mockReturnValue({
-        userId: mockUserId,
-        name: mockName,
-        parentId: mockParentId,
-        group: mockGroup,
-        color: mockColor,
-        children: [],
-      }),
-    };
-
-    // mock valid return from database
-    (get as Mock).mockReturnValueOnce(mockSnapshot);
-
-    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
-
-    await expect(mockDatabaseService.fetchNodeById(mockUserId)).rejects.toThrow(
-      NodeError,
-    );
-  });
-
-  test("uploadNode should upload valid node to database", async () => {
-    const mockUserId = "mock-user";
     const mockName = "mock-name";
-    const mockParentId = "mock-parent-id";
-    const mockGroup = "mock-group";
-    const mockColor = "#ffffff";
 
-    const mockSnapshot = {
-      exists: vi.fn().mockReturnValue(true),
-      val: vi.fn().mockReturnValue({
-        userId: mockUserId,
-        name: mockName,
-        parentId: mockParentId,
-        group: mockGroup,
-        color: mockColor,
-        children: [],
-      }),
-    };
-
-    const mockNode = {
-      userId: mockUserId,
-      name: mockName,
-      parentId: mockParentId,
-      group: mockGroup,
-      color: mockColor,
-      children: [],
-    };
-
-    const mockParentNode = {
-      userId: "mock-parent-id",
+    const mockParentNode: Node = {
+      userId: mockParentId,
       name: "mock-parent-name",
-      parentId: "mock-parent-id",
+      parentId: "mock-parent-parent-id",
       group: "mock-group",
-      color: "ffffff",
-      children: [],
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    // mock valid return from database
-    (get as Mock).mockReturnValueOnce(mockSnapshot);
+    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (prismaMock.node.create as Mock).mockResolvedValue({} as Node);
 
-    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
+    const service = new DatabaseService(prismaMock);
 
-    // Mock returning a parent node
-    vi.spyOn(mockDatabaseService, "fetchNodeById").mockResolvedValueOnce(
-      mockParentNode,
-    );
+    await service.uploadNode(mockUserId, mockParentId, mockName);
 
-    await mockDatabaseService.uploadNode(mockNode);
+    expect(prismaMock.node.findUnique).toHaveBeenCalledWith({
+      where: { userId: mockParentId },
+    });
 
-    expect(ref).toHaveBeenCalledWith(mockDb);
-    expect(update).toHaveBeenCalledTimes(1);
-
-    // capture arguments passed to update
-    const [refArg, updatesArg] = (update as Mock).mock.calls[0];
-
-    expect(refArg).toEqual(undefined);
-
-    // assert parent array was updated to include child
-    expect(updatesArg).toEqual({
-      [`/users/${mockUserId}`]: mockNode,
-      [`/users/${mockParentId}`]: {
-        ...mockParentNode,
-        children: [mockNode.userId],
+    expect(prismaMock.node.create).toHaveBeenCalledWith({
+      data: {
+        userId: mockUserId,
+        name: mockName,
+        parentId: mockParentId,
+        group: mockParentNode.group,
+        color: mockParentNode.color,
       },
     });
   });
 
-  test("uploadNode should throw error when data has invalid shape", async () => {
-    const mockUserId = "mock-user";
-    const mockName = "mock-name";
+  test("uploadNode should throw PrismaOperationError if write operation fails", async () => {
+    const mockUserId = "mock-user-id";
     const mockParentId = "mock-parent-id";
-    const mockGroup = "mock-group";
-    const INVALID_HEX_CODE = "#ffff"; // invalid hex code to trigger Zod error
+    const mockName = "mock-name";
 
-    const mockNode = {
-      userId: mockUserId,
-      name: mockName,
-      parentId: mockParentId,
-      group: mockGroup,
-      color: INVALID_HEX_CODE,
-      children: [],
+    const mockParentNode: Node = {
+      userId: mockParentId,
+      name: "mock-parent-name",
+      parentId: "mock-parent-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    const mockDatabaseService = new FirebaseDatabaseService(mockDb);
-
-    await expect(mockDatabaseService.uploadNode(mockNode)).rejects.toThrow(
-      NodeError,
+    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (prismaMock.node.create as Mock).mockRejectedValue(
+      new Error("DB Write Operation Failed"),
     );
-  });*/
+
+    const service = new DatabaseService(prismaMock);
+
+    await expect(
+      service.uploadNode(mockUserId, mockParentId, mockName),
+    ).rejects.toThrow(PrismaOperationError);
+  });
+
+  test("uploadNode should throw PrismaOperationError with generic message if unknown failure happens", async () => {
+    const mockUserId = "mock-user-id";
+    const mockParentId = "mock-parent-id";
+    const mockName = "mock-name";
+
+    const mockParentNode: Node = {
+      userId: mockParentId,
+      name: "mock-parent-name",
+      parentId: "mock-parent-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (prismaMock.node.create as Mock).mockRejectedValue("Unexpected Value");
+
+    const service = new DatabaseService(prismaMock);
+
+    await expect(
+      service.uploadNode(mockUserId, mockParentId, mockName),
+    ).rejects.toThrow(PrismaOperationError);
+
+    await expect(
+      service.uploadNode(mockUserId, mockParentId, mockName),
+    ).rejects.toThrow(/Unknown Prisma Error/);
+  });
 
   /*test("removeNode should update database with only two commands when removing user with no children", async () => {
     const mockUser: Node = {
