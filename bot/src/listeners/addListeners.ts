@@ -4,13 +4,14 @@ import { createOnGuildMemberRemove } from "../events/onGuildMemberRemove.js";
 import { ServiceContainer } from "../services/index.js";
 
 export function setupAddListeners(
-  client: Client,
+  discordClient: Client,
   services: ServiceContainer,
   channelName: string,
 ) {
+  // TODO: refactor to use real database for updates
   const onMessageCreate = createOnMessageCreate(services, channelName);
   const onGuildMemberRemove = createOnGuildMemberRemove(services);
 
-  client.on("messageCreate", onMessageCreate);
-  client.on("guildMemberRemove", onGuildMemberRemove);
+  discordClient.on("messageCreate", onMessageCreate);
+  discordClient.on("guildMemberRemove", onGuildMemberRemove);
 }

@@ -26,8 +26,6 @@ model Node {
   group     String
   /// Color of this node, groups will share the same color
   color     String
-  /// Array of Discord IDs who are 'descendants' of this user (i.e. leaf nodes of this subtree)
-  children  String[] @default([])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

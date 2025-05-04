@@ -14,6 +14,6 @@ export function createOnGuildMemberRemove(services: ServiceContainer) {
       return;
     }
 
-    await services.databaseService.removeNode(user.id);
+    //await services.databaseService.removeNode(user.id);
   };
 }

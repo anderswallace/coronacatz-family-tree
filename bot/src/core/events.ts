@@ -4,13 +4,13 @@ import { handleHelpCommand } from "../commands/help.js";
 import { ServiceContainer } from "../services/index.js";
 
 export function setupEvents(
-  client: Client,
+  discordClient: Client,
   services: ServiceContainer,
   channel: string,
 ) {
-  setupAddListeners(client, services, channel);
+  setupAddListeners(discordClient, services, channel);
 
-  client.on("interactionCreate", async (interaction) => {
+  discordClient.on("interactionCreate", async (interaction) => {
     // slash command handling
     if (!interaction.isChatInputCommand()) {
       return;

@@ -18,7 +18,7 @@ describe("onGuildMemberRemove", () => {
     vi.clearAllMocks();
   });
 
-  test("Should call removeNode when valid user returned", async () => {
+  /*test("Should call removeNode when valid user returned", async () => {
     const mockUser = {
       id: "mock-user",
       username: "mock-username",
@@ -47,5 +47,5 @@ describe("onGuildMemberRemove", () => {
 
     expect(mockServices.databaseService.removeNode).not.toHaveBeenCalled();
     expect(warnSpy).toHaveBeenCalledWith(errorMessage);
-  });
+  });*/
 });

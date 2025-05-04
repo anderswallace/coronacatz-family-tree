@@ -14,9 +14,6 @@ vi.mock("../services/databaseService", () => ({
 const targetChannel = "family-tree";
 
 const mockServices = {
-  treeService: {
-    createNodeFromParent: vi.fn(),
-  },
   databaseService: {
     uploadNode: vi.fn(),
   },
@@ -169,13 +166,6 @@ describe("onMessageCreate", () => {
     const mockMessage = Object.create(Message.prototype) as Message<true>;
     const channel = Object.create(TextChannel.prototype) as TextChannel;
 
-    (mockServices.treeService.createNodeFromParent as Mock).mockResolvedValue({
-      userId: "mock-id",
-      name: "mock-name",
-      parentId: "mock-parent",
-      group: "mock-group",
-      color: "#99ccff",
-    });
     (mockServices.databaseService.uploadNode as Mock).mockResolvedValue(
       undefined,
     );

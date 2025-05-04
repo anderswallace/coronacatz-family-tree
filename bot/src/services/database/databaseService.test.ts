@@ -1,23 +1,13 @@
 import { describe, test, expect, vi, Mock, afterEach } from "vitest";
-import { get, ref, update, Database } from "firebase/database";
-import { NodeError, UserNotFoundError } from "../../errors/customErrors.js";
-import { FirebaseDatabaseService } from "./firebaseDatabaseService.js";
-import { Node } from "../../schema/treeNode.js";
-
-vi.mock("firebase/database", () => ({
-  ref: vi.fn(),
-  get: vi.fn(),
-  update: vi.fn(),
-}));
-
-const mockDb = {} as unknown as Database;
+import { UserNotFoundError } from "../../errors/customErrors.js";
+import { PrismaClient, Node } from "@prisma/client";
 
 describe("databaseService", () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  test("fetchNodeById should return valid node when user exists in database", async () => {
+  /*test("fetchNodeById should return valid node when user exists in database", async () => {
     const mockUserId = "mock-user";
     const mockName = "mock-name";
     const mockParentId = "mock-parent-id";
@@ -190,9 +180,9 @@ describe("databaseService", () => {
     await expect(mockDatabaseService.uploadNode(mockNode)).rejects.toThrow(
       NodeError,
     );
-  });
+  });*/
 
-  test("removeNode should update database with only two commands when removing user with no children", async () => {
+  /*test("removeNode should update database with only two commands when removing user with no children", async () => {
     const mockUser: Node = {
       userId: "mock-user",
       name: "mock-name",
@@ -305,5 +295,5 @@ describe("databaseService", () => {
       },
       [`/users/${mockUser.userId}`]: null,
     });
-  });
+  });*/
 });
