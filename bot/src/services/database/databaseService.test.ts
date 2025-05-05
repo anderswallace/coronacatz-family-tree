@@ -10,6 +10,9 @@ const prismaMock = {
   node: {
     findUnique: vi.fn(),
     create: vi.fn(),
+    findMany: vi.fn(),
+    update: vi.fn(),
+    delete: vi.fn(),
   },
 } as unknown as PrismaClient;
 
@@ -137,123 +140,207 @@ describe("databaseService", () => {
       service.uploadNode(mockUserId, mockParentId, mockName),
     ).rejects.toThrow(PrismaOperationError);
 
+    // Regex match to check that generic message is passed to thrown error message
     await expect(
       service.uploadNode(mockUserId, mockParentId, mockName),
     ).rejects.toThrow(/Unknown Prisma Error/);
   });
 
-  /*test("removeNode should update database with only two commands when removing user with no children", async () => {
+  test("removeNode should remove selected userId from database", async () => {
     const mockUser: Node = {
-      userId: "mock-user",
-      name: "mock-name",
-      parentId: "mock-parent-id",
+      userId: "mock-user-id",
+      name: "mock-user-name",
+      parentId: "mock-user-parent-id",
       group: "mock-group",
-      color: "mock-color",
-      children: [],
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const mockParent: Node = {
-      userId: "mock-parent",
+      userId: "mock-parent-id",
       name: "mock-parent-name",
-      parentId: "mock-parent-id",
+      parentId: "mock-parent-parent-id",
       group: "mock-group",
-      color: "mock-color",
-      children: ["mock-user"],
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    const mockService = new FirebaseDatabaseService(mockDb);
+    const mockChildren: Node[] = [];
 
-    // mock two return calls as user and parent of user
-    vi.spyOn(mockService, "fetchNodeById")
-      .mockResolvedValueOnce(mockUser)
-      .mockResolvedValueOnce(mockParent);
+    (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
 
-    await mockService.removeNode(mockUser.userId);
+    const service = new DatabaseService(prismaMock);
 
-    expect(ref).toHaveBeenCalledWith(mockDb);
-    expect(update).toHaveBeenCalledTimes(1);
+    // spy on fetchNodeById to mock valid return values
+    const fetchNodeSpy = vi
+      .spyOn(service, "fetchNodeById")
+      .mockImplementationOnce(async () => mockUser)
+      .mockImplementationOnce(async () => mockParent);
 
-    // capture arguments passed to update
-    const [refArg, updatesArg] = (update as Mock).mock.calls[0];
+    await service.removeNode(mockUser.userId);
 
-    expect(refArg).toEqual(undefined);
-    expect(Object.keys(updatesArg)).toHaveLength(2);
-    expect(updatesArg).toEqual({
-      [`/users/${mockParent.userId}`]: {
-        ...mockParent,
-        children: [],
-      },
-      [`/users/${mockUser.userId}`]: null,
+    expect(fetchNodeSpy).toHaveBeenCalledTimes(2);
+    expect(prismaMock.node.update).not.toHaveBeenCalled();
+    expect(prismaMock.node.delete).toHaveBeenCalledWith({
+      where: { userId: mockUser.userId },
     });
   });
 
-  test("removeNode should update children's parents when removed node has children", async () => {
+  test("removeNode should remove selected userId and reparent its children", async () => {
     const mockUser: Node = {
-      userId: "mock-user",
-      name: "mock-name",
-      parentId: "mock-parent-id",
+      userId: "mock-user-id",
+      name: "mock-user-name",
+      parentId: "mock-user-parent-id",
       group: "mock-group",
-      color: "mock-color",
-      children: ["childA", "childB"],
-    };
-
-    const childA: Node = {
-      userId: "childA",
-      name: "child-a",
-      parentId: "mock-user",
-      group: "mock-group",
-      color: "mock-color",
-      children: [],
-    };
-
-    const childB: Node = {
-      userId: "childB",
-      name: "child-b",
-      parentId: "mock-user",
-      group: "mock-group",
-      color: "mock-color",
-      children: [],
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
     const mockParent: Node = {
-      userId: "mock-parent",
+      userId: "mock-parent-id",
       name: "mock-parent-name",
-      parentId: "mock-parent-id",
+      parentId: "mock-parent-parent-id",
       group: "mock-group",
-      color: "mock-color",
-      children: ["mock-user"],
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
 
-    const mockService = new FirebaseDatabaseService(mockDb);
-    vi.spyOn(mockService, "fetchNodeById")
-      .mockResolvedValueOnce(mockUser)
-      .mockResolvedValueOnce(mockParent)
-      .mockResolvedValueOnce(childA)
-      .mockResolvedValueOnce(childB);
-
-    await mockService.removeNode(mockUser.userId);
-
-    expect(ref).toHaveBeenCalledWith(mockDb);
-    expect(update).toHaveBeenCalledTimes(1);
-
-    // capture arguments passed to update
-    const [refArg, updatesArg] = (update as Mock).mock.calls[0];
-
-    expect(refArg).toEqual(undefined);
-    expect(updatesArg).toEqual({
-      [`/users/${childA.userId}`]: {
-        ...childA,
-        parentId: mockParent.userId,
+    // mock children belonding to node being removed
+    const mockChildren: Node[] = [
+      {
+        userId: "mock-grandchild-id",
+        name: "mock-grandchild-name",
+        parentId: mockUser.userId,
+        group: "mock-group",
+        color: "#ffffff",
+        createdAt: new Date(),
+        updatedAt: new Date(),
       },
-      [`/users/${childB.userId}`]: {
-        ...childB,
-        parentId: mockParent.userId,
-      },
-      [`/users/${mockParent.userId}`]: {
-        ...mockParent,
-        children: [childA.userId, childB.userId],
-      },
-      [`/users/${mockUser.userId}`]: null,
+    ];
+
+    (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
+
+    const service = new DatabaseService(prismaMock);
+
+    // spy on fetchNodeById to mock valid return values
+    const fetchNodeSpy = vi
+      .spyOn(service, "fetchNodeById")
+      .mockImplementationOnce(async () => mockUser)
+      .mockImplementationOnce(async () => mockParent);
+
+    await service.removeNode(mockUser.userId);
+
+    expect(fetchNodeSpy).toHaveBeenCalledTimes(2);
+    expect(prismaMock.node.update).toHaveBeenCalledWith({
+      where: { userId: "mock-grandchild-id" },
+      data: { parentId: mockParent.userId },
     });
-  });*/
+    expect(prismaMock.node.delete).toHaveBeenCalledWith({
+      where: { userId: mockUser.userId },
+    });
+  });
+
+  test("removeNode should throw PrismaOperationError if a database operation fails", async () => {
+    const mockUser: Node = {
+      userId: "mock-user-id",
+      name: "mock-user-name",
+      parentId: "mock-user-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockParent: Node = {
+      userId: "mock-parent-id",
+      name: "mock-parent-name",
+      parentId: "mock-parent-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // mock children belonding to node being removed
+    const mockChildren: Node[] = [
+      {
+        userId: "mock-grandchild-id",
+        name: "mock-grandchild-name",
+        parentId: mockUser.userId,
+        group: "mock-group",
+        color: "#ffffff",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
+    (prismaMock.node.update as Mock).mockRejectedValue(
+      new Error("Update operation failed"),
+    );
+
+    const service = new DatabaseService(prismaMock);
+
+    // spy on fetchNodeById to mock valid return values
+    vi.spyOn(service, "fetchNodeById")
+      .mockImplementationOnce(async () => mockUser)
+      .mockImplementationOnce(async () => mockParent);
+
+    await expect(service.removeNode(mockUser.userId)).rejects.toThrow(
+      PrismaOperationError,
+    );
+  });
+
+  test("removeNode should throw PrismaOperationError with generic message if unknown error occurs", async () => {
+    const mockUser: Node = {
+      userId: "mock-user-id",
+      name: "mock-user-name",
+      parentId: "mock-user-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockParent: Node = {
+      userId: "mock-parent-id",
+      name: "mock-parent-name",
+      parentId: "mock-parent-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // mock children belonding to node being removed
+    const mockChildren: Node[] = [
+      {
+        userId: "mock-grandchild-id",
+        name: "mock-grandchild-name",
+        parentId: mockUser.userId,
+        group: "mock-group",
+        color: "#ffffff",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
+    (prismaMock.node.update as Mock).mockRejectedValue("Unexpected value");
+
+    const service = new DatabaseService(prismaMock);
+
+    // spy on fetchNodeById to mock valid return values
+    vi.spyOn(service, "fetchNodeById")
+      .mockImplementationOnce(async () => mockUser)
+      .mockImplementationOnce(async () => mockParent);
+
+    await expect(service.removeNode(mockUser.userId)).rejects.toThrow(
+      /Unknown Prisma Error/,
+    );
+  });
 });
