@@ -8,7 +8,6 @@ export function setupAddListeners(
   services: ServiceContainer,
   channelName: string,
 ) {
-  // TODO: refactor to use real database for updates
   const onMessageCreate = createOnMessageCreate(services, channelName);
   const onGuildMemberRemove = createOnGuildMemberRemove(services);
 

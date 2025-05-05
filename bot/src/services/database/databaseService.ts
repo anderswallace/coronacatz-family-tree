@@ -47,7 +47,7 @@ export class DatabaseService implements IDatabaseService {
     }
   }
 
-  // TODO: Reimplement removeNode to use Prisma
+  // remove selected userId reparent all its children to its parent node
   async removeNode(userId: string): Promise<void> {
     try {
       const user = await this.fetchNodeById(userId);
