@@ -24,7 +24,7 @@ export class DatabaseService implements IDatabaseService {
   async uploadNode(
     userId: string,
     parentId: string,
-    name: string,
+    name: string
   ): Promise<void> {
     const parent = await this.fetchNodeById(parentId);
 
@@ -47,29 +47,38 @@ export class DatabaseService implements IDatabaseService {
     }
   }
 
-  // remove selected userId reparent all its children to its parent node
+  // remove selected userId re-parent all its children to its parent node
   async removeNode(userId: string): Promise<void> {
     try {
       const user = await this.fetchNodeById(userId);
       const parent = await this.fetchNodeById(user.parentId);
 
-      // fetch children who will be reparented
+      // fetch children who will be re-parented
       const children = await this.prismaClient.node.findMany({
         where: { parentId: userId },
       });
 
-      // reparent all children to parent of node being removed
+      const operations = [];
+
+      // re-parent all children to parent of node being removed
       for (const child of children) {
-        await this.prismaClient.node.update({
-          where: { userId: child.userId },
-          data: { parentId: parent.userId },
-        });
+        operations.push(
+          this.prismaClient.node.update({
+            where: { userId: child.userId },
+            data: { parentId: parent.userId },
+          })
+        );
       }
 
       // remove node
-      await this.prismaClient.node.delete({
-        where: { userId },
-      });
+      operations.push(
+        this.prismaClient.node.delete({
+          where: { userId },
+        })
+      );
+
+      // execute all updates atomically
+      await this.prismaClient.$transaction(operations);
     } catch (err) {
       if (err instanceof Error) {
         throw new PrismaOperationError(err.message);

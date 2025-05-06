@@ -14,7 +14,6 @@ datasource db {
 }
 
 /// A node representing a user in the tree structure
-/// Each node stores its direct children as an array of Discord IDs
 model Node {
   /// Discord ID of a user (primary key)
   userId    String   @id

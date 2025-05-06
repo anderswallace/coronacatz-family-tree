@@ -5,7 +5,7 @@ export interface IDatabaseService {
   uploadNode(
     userId: string,
     parentId: string,
-    childName: string,
+    childName: string
   ): Promise<void>;
-  //removeNode(userId: string): Promise<void>;
+  removeNode(userId: string): Promise<void>;
 }

@@ -14,6 +14,7 @@ const prismaMock = {
     update: vi.fn(),
     delete: vi.fn(),
   },
+  $transaction: vi.fn(),
 } as unknown as PrismaClient;
 
 describe("databaseService", () => {
@@ -48,7 +49,7 @@ describe("databaseService", () => {
 
     const service = new DatabaseService(prismaMock);
     await expect(service.fetchNodeById("mock-user")).rejects.toThrow(
-      UserNotFoundError,
+      UserNotFoundError
     );
   });
 
@@ -106,13 +107,13 @@ describe("databaseService", () => {
 
     (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
     (prismaMock.node.create as Mock).mockRejectedValue(
-      new Error("DB Write Operation Failed"),
+      new Error("DB Write Operation Failed")
     );
 
     const service = new DatabaseService(prismaMock);
 
     await expect(
-      service.uploadNode(mockUserId, mockParentId, mockName),
+      service.uploadNode(mockUserId, mockParentId, mockName)
     ).rejects.toThrow(PrismaOperationError);
   });
 
@@ -137,12 +138,12 @@ describe("databaseService", () => {
     const service = new DatabaseService(prismaMock);
 
     await expect(
-      service.uploadNode(mockUserId, mockParentId, mockName),
+      service.uploadNode(mockUserId, mockParentId, mockName)
     ).rejects.toThrow(PrismaOperationError);
 
     // Regex match to check that generic message is passed to thrown error message
     await expect(
-      service.uploadNode(mockUserId, mockParentId, mockName),
+      service.uploadNode(mockUserId, mockParentId, mockName)
     ).rejects.toThrow(/Unknown Prisma Error/);
   });
 
@@ -169,7 +170,11 @@ describe("databaseService", () => {
 
     const mockChildren: Node[] = [];
 
+    // mock findMany to return no children
     (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
+
+    const deleteSpy = vi.spyOn(prismaMock.node, "delete");
+    (deleteSpy as Mock).mockResolvedValue(undefined);
 
     const service = new DatabaseService(prismaMock);
 
@@ -182,13 +187,14 @@ describe("databaseService", () => {
     await service.removeNode(mockUser.userId);
 
     expect(fetchNodeSpy).toHaveBeenCalledTimes(2);
-    expect(prismaMock.node.update).not.toHaveBeenCalled();
-    expect(prismaMock.node.delete).toHaveBeenCalledWith({
+    expect(prismaMock.node.update).toHaveBeenCalledTimes(0);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(deleteSpy).toHaveBeenCalledWith({
       where: { userId: mockUser.userId },
     });
   });
 
-  test("removeNode should remove selected userId and reparent its children", async () => {
+  test("removeNode should remove selected userId and re-parent its children", async () => {
     const mockUser: Node = {
       userId: "mock-user-id",
       name: "mock-user-name",
@@ -209,7 +215,7 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    // mock children belonding to node being removed
+    // mock children belonging to node being removed
     const mockChildren: Node[] = [
       {
         userId: "mock-grandchild-id",
@@ -235,6 +241,7 @@ describe("databaseService", () => {
     await service.removeNode(mockUser.userId);
 
     expect(fetchNodeSpy).toHaveBeenCalledTimes(2);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
     expect(prismaMock.node.update).toHaveBeenCalledWith({
       where: { userId: "mock-grandchild-id" },
       data: { parentId: mockParent.userId },
@@ -265,22 +272,12 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    // mock children belonding to node being removed
-    const mockChildren: Node[] = [
-      {
-        userId: "mock-grandchild-id",
-        name: "mock-grandchild-name",
-        parentId: mockUser.userId,
-        group: "mock-group",
-        color: "#ffffff",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
+    // mock user to contain no children nodes
+    const mockChildren: Node[] = [];
 
     (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
-    (prismaMock.node.update as Mock).mockRejectedValue(
-      new Error("Update operation failed"),
+    (prismaMock.$transaction as Mock).mockRejectedValue(
+      new Error("Update operation failed")
     );
 
     const service = new DatabaseService(prismaMock);
@@ -291,7 +288,7 @@ describe("databaseService", () => {
       .mockImplementationOnce(async () => mockParent);
 
     await expect(service.removeNode(mockUser.userId)).rejects.toThrow(
-      PrismaOperationError,
+      PrismaOperationError
     );
   });
 
@@ -316,7 +313,7 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    // mock children belonding to node being removed
+    // mock children belonging to node being removed
     const mockChildren: Node[] = [
       {
         userId: "mock-grandchild-id",
@@ -330,7 +327,7 @@ describe("databaseService", () => {
     ];
 
     (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
-    (prismaMock.node.update as Mock).mockRejectedValue("Unexpected value");
+    (prismaMock.$transaction as Mock).mockRejectedValue("Unexpected value");
 
     const service = new DatabaseService(prismaMock);
 
@@ -340,7 +337,7 @@ describe("databaseService", () => {
       .mockImplementationOnce(async () => mockParent);
 
     await expect(service.removeNode(mockUser.userId)).rejects.toThrow(
-      /Unknown Prisma Error/,
+      /Unknown Prisma Error/
     );
   });
 });
