@@ -6,11 +6,11 @@ export class UserNotFoundError extends Error {
   }
 }
 
-export class NodeError extends Error {
-  constructor(id: string, message: string) {
-    super(`Invalid Node data for user ${id}: ${message}`);
-    this.name = "NodeError";
-    Object.setPrototypeOf(this, NodeError.prototype);
+export class PrismaOperationError extends Error {
+  constructor(message: string) {
+    super(`Database operation failed: ${message}`);
+    this.name = "PrismaOperationError";
+    Object.setPrototypeOf(this, PrismaOperationError.prototype);
   }
 }
 

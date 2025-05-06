@@ -1,4 +1,40 @@
-# Logs
+### macOS ###
+
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+### macOS Patch ###
+# iCloud generated files
+*.icloud
+
+# End of https://www.toptal.com/developers/gitignore/api/macos
+
+### Logs ###
 logs
 *.log
 npm-debug.log*
@@ -8,13 +44,23 @@ lerna-debug.log*
 .pnpm-debug.log*
 *.stryker-tmp
 
-# Dependency directories
+### Dependency directories ###
 node_modules/
 dist/
 
-# dotenv environment variable files
+### dotenv environment variable files ###
 .env
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
+.env.keys
+.env.*.local
+
+# Supabase
+.branches
+.temp
+
+# Prisma
+.prisma/
+

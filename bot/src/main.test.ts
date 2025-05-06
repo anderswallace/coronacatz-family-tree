@@ -1,7 +1,6 @@
 import { describe, test, expect, vi } from "vitest";
 import { main } from "./main.js";
 import { registerSlashCommands } from "./core/registerCommands.js";
-import { initFirebase } from "./services/database/firebase.js";
 
 const mockLogin = vi.fn();
 const mockOnce = vi.fn();
@@ -58,11 +57,6 @@ describe("index", () => {
 
     await main();
 
-    expect(initFirebase).toHaveBeenCalledWith(
-      "mock-db-url",
-      "mock-project-id",
-      "mock-api-key",
-    );
     expect(registerSlashCommands).toHaveBeenCalledWith(
       "mock-token",
       "mock-client-id",

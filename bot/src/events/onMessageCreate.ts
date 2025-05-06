@@ -37,12 +37,11 @@ export function createOnMessageCreate(
 
       const { childUsername, parentUsername } = resolvedNames;
 
-      const childNode = await services.treeService.createNodeFromParent(
+      await services.databaseService.uploadNode(
         childId,
-        childUsername,
         parentId,
+        childUsername,
       );
-      await services.databaseService.uploadNode(childNode);
 
       await channel.send(
         `Family tree updated! Added ${childUsername} to ${parentUsername}`,
