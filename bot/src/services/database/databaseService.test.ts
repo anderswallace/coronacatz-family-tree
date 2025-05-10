@@ -13,6 +13,7 @@ const prismaMock = {
     findMany: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
+    updateMany: vi.fn(),
   },
   $transaction: vi.fn(),
 } as unknown as PrismaClient;
@@ -187,7 +188,7 @@ describe("databaseService", () => {
     await service.removeNode(mockUser.userId);
 
     expect(fetchNodeSpy).toHaveBeenCalledTimes(2);
-    expect(prismaMock.node.update).toHaveBeenCalledTimes(0);
+    expect(prismaMock.node.updateMany).toHaveBeenCalledTimes(1);
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
     expect(deleteSpy).toHaveBeenCalledWith({
       where: { userId: mockUser.userId },
@@ -242,9 +243,73 @@ describe("databaseService", () => {
 
     expect(fetchNodeSpy).toHaveBeenCalledTimes(2);
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
-    expect(prismaMock.node.update).toHaveBeenCalledWith({
-      where: { userId: "mock-grandchild-id" },
+    expect(prismaMock.node.updateMany).toHaveBeenCalledTimes(1);
+    expect(prismaMock.node.updateMany).toHaveBeenCalledWith({
+      where: { parentId: mockUser.userId },
       data: { parentId: mockParent.userId },
+    });
+    expect(prismaMock.node.delete).toHaveBeenCalledWith({
+      where: { userId: mockUser.userId },
+    });
+  });
+
+  test("removeNode should update group of all children if node being removed is the root", async () => {
+    const mockUser: Node = {
+      userId: "mock-user-id",
+      name: "mock-user-name",
+      parentId: "mock-user-parent-id",
+      group: "mock-user-name",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const mockParent: Node = {
+      userId: "mock-parent-id",
+      name: "mock-parent-name",
+      parentId: "mock-parent-parent-id",
+      group: "mock-parent-name",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // mock children belonging to node being removed
+    const mockChildren: Node[] = [
+      {
+        userId: "mock-grandchild-id",
+        name: "mock-grandchild-name",
+        parentId: mockUser.userId,
+        group: "mock-group",
+        color: "#ffffff",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ];
+
+    (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
+
+    const service = new DatabaseService(prismaMock);
+
+    // spy on fetchNodeById to mock valid return values
+    const fetchNodeSpy = vi
+      .spyOn(service, "fetchNodeById")
+      .mockImplementationOnce(async () => mockUser)
+      .mockImplementationOnce(async () => mockParent);
+
+    await service.removeNode(mockUser.userId);
+
+    expect(fetchNodeSpy).toHaveBeenCalledTimes(2);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+
+    expect(prismaMock.node.updateMany).toHaveBeenCalledTimes(2);
+    expect(prismaMock.node.updateMany).toHaveBeenCalledWith({
+      where: { parentId: mockUser.userId },
+      data: { parentId: mockParent.userId },
+    });
+    expect(prismaMock.node.updateMany).toHaveBeenCalledWith({
+      where: { group: mockUser.group },
+      data: { group: mockParent.group, color: mockParent.color },
     });
     expect(prismaMock.node.delete).toHaveBeenCalledWith({
       where: { userId: mockUser.userId },

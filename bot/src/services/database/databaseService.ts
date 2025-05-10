@@ -61,11 +61,19 @@ export class DatabaseService implements IDatabaseService {
       const operations = [];
 
       // re-parent all children to parent of node being removed
-      for (const child of children) {
+      operations.push(
+        this.prismaClient.node.updateMany({
+          where: { parentId: userId },
+          data: { parentId: parent.userId },
+        })
+      );
+
+      // check if user is the root of the tree (a founder), if so update old group to that of the new parent
+      if (user.group === user.name) {
         operations.push(
-          this.prismaClient.node.update({
-            where: { userId: child.userId },
-            data: { parentId: parent.userId },
+          this.prismaClient.node.updateMany({
+            where: { group: user.group },
+            data: { group: parent.group, color: parent.color },
           })
         );
       }
