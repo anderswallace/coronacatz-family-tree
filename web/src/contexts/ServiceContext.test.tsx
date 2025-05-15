@@ -2,7 +2,6 @@ import { describe, test, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { useServices, ServiceContext } from "./ServiceContext";
 import { AppServices } from "../services";
-import React from "react";
 import { ContextError } from "../errors/customErrors";
 
 function Consumer() {
