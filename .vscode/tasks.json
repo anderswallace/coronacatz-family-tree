@@ -11,6 +11,17 @@
       },
       "isBackground": true,
       "problemMatcher": []
+    },
+    {
+      "label": "Run Web",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "options": {
+        "cwd": "${workspaceFolder:Web}"
+      },
+      "isBackground": true,
+      "problemMatcher": []
     }
   ]
 }

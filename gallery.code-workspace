@@ -7,6 +7,10 @@
     {
       "name": "Bot",
       "path": "./bot"
+    },
+    {
+      "name": "Web",
+      "path": "./web"
     }
   ],
   "settings": {
