@@ -5,3 +5,11 @@ export class ConfigError extends Error {
     Object.setPrototypeOf(this, ConfigError.prototype);
   }
 }
+
+export class ContextError extends Error {
+  constructor() {
+    super("Service Context not initialized");
+    this.name = "ContextError";
+    Object.setPrototypeOf(this, ContextError.prototype);
+  }
+}
