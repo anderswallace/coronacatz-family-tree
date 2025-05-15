@@ -26,12 +26,7 @@ describe("ServiceContext", () => {
   });
 
   test("useServices should throw an error when not wrapped in provider", () => {
-    const renderWithError = () =>
-      render(
-        <React.StrictMode>
-          <Consumer />
-        </React.StrictMode>
-      );
+    const renderWithError = () => render(<Consumer />);
 
     expect(renderWithError).toThrow(ContextError);
   });

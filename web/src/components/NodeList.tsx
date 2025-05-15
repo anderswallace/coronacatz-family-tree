@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useServices } from "../contexts/ServiceContext";
-import type { Node } from "../types/Node";
+import type { Node } from "../types/node";
 
 export function NodeList() {
   const { nodeService } = useServices();
