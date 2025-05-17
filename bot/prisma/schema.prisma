@@ -27,4 +27,7 @@ model Node {
   color     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  // Update the name of the actual table in Supabase
+  @@map("nodes")
 }
