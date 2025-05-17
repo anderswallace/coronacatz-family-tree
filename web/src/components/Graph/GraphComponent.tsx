@@ -56,5 +56,13 @@ export function GraphComponent({ nodes, edges }: GraphComponentProps) {
     };
   }, [nodes, edges]);
 
-  return <div ref={containerRef} style={{ height: "600px", width: "100%" }} />;
+  return (
+    <div
+      ref={containerRef}
+      style={{
+        height: "100%",
+        width: "100%",
+      }}
+    />
+  );
 }
