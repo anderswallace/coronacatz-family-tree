@@ -1,6 +1,7 @@
 import { useGraphData } from "../../graph/useGraphData";
 import { GraphComponent } from "./GraphComponent";
 
+// Component to house GraphComponent, which draws a graph using provided nodes and edges
 export function GraphViewer() {
   const { nodes, edges, loading, error } = useGraphData();
 

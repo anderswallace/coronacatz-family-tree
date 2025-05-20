@@ -3,6 +3,8 @@ import { useServices } from "../contexts/ServiceContext";
 import { buildGraphFromNodes } from "./graphBuilder";
 import type { GraphEdge, GraphNode } from "../types/graph";
 
+// function to fetch nodes from DB and construct nodes and edges to be drawn by GraphComponent
+// returns nodes and edges, as well as loading and error state of graph construction process
 export function useGraphData() {
   const { nodeService } = useServices();
 

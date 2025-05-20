@@ -4,7 +4,7 @@ import { GraphViewer } from "./components/Graph/GraphViewer";
 function App() {
   return (
     <>
-      <div className="card">
+      <div className="full">
         <GraphViewer />
       </div>
     </>
