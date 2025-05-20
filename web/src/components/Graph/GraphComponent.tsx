@@ -1,3 +1,4 @@
+import "./Graph.css";
 import { useRef, useEffect } from "react";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
@@ -52,13 +53,5 @@ export function GraphComponent({ nodes, edges }: GraphComponentProps) {
     };
   }, [nodes, edges]);
 
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        height: "100%",
-        width: "100%",
-      }}
-    />
-  );
+  return <div className="full" ref={containerRef} />;
 }
