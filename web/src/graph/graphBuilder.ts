@@ -1,13 +1,15 @@
 import type { Node } from "../types/node";
+import type { GraphData, GraphEdge, GraphNode } from "../types/graph";
 
-export function buildGraphFromNodes(raw: Node[]) {
-  const graphNodes = raw.map((node) => ({
+// returns constructed arrays of GraphNodes and GraphEdges given an array of Node objects
+export function buildGraphFromNodes(raw: Node[]): GraphData {
+  const graphNodes: GraphNode[] = raw.map((node) => ({
     id: node.userId,
     label: node.name,
     color: node.color,
   }));
 
-  const graphEdges = raw
+  const graphEdges: GraphEdge[] = raw
     .filter((node) => node.parentId)
     .map((node, i) => ({
       id: `edge-${i}`,

@@ -8,6 +8,7 @@ interface GraphComponentProps {
   edges: GraphEdge[];
 }
 
+// Component which draws an undirected graph using arrays of nodes and edges as input
 export function GraphComponent({ nodes, edges }: GraphComponentProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const networkRef = useRef<Network | null>(null);
@@ -16,7 +17,6 @@ export function GraphComponent({ nodes, edges }: GraphComponentProps) {
     if (!containerRef.current) {
       return;
     }
-    console.log(edges);
     const data = {
       nodes: new DataSet(nodes),
       edges: new DataSet(edges),
@@ -26,10 +26,6 @@ export function GraphComponent({ nodes, edges }: GraphComponentProps) {
       layout: {
         hierarchical: {
           enabled: false,
-        },
-        physics: {
-          enabled: true,
-          stabilization: { iterations: 200 },
         },
       },
       nodes: {

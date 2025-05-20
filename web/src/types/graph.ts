@@ -1,11 +1,16 @@
-export interface GraphNode {
+export type GraphNode = {
   id: string;
   label: string;
   color?: string;
-}
+};
 
-export interface GraphEdge {
+export type GraphEdge = {
   id?: string;
   from: string;
   to: string;
-}
+};
+
+export type GraphData = {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+};
