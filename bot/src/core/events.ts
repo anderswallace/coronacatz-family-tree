@@ -1,12 +1,13 @@
-import { Client } from "discord.js";
+import { Client, MessageFlags } from "discord.js";
 import { setupAddListeners } from "../listeners/addListeners.js";
 import { handleHelpCommand } from "../commands/help.js";
+import { handleSeedCommand } from "../commands/seed.js";
 import { ServiceContainer } from "../services/index.js";
 
 export function setupEvents(
   discordClient: Client,
   services: ServiceContainer,
-  channel: string,
+  channel: string
 ) {
   setupAddListeners(discordClient, services, channel);
 
@@ -16,8 +17,14 @@ export function setupEvents(
       return;
     }
 
-    if (interaction.commandName === "help") {
-      await handleHelpCommand(interaction);
+    switch (interaction.commandName) {
+      case "help":
+        await handleHelpCommand(interaction);
+        break;
+
+      case "seed":
+        await handleSeedCommand(interaction);
+        break;
     }
   });
 }

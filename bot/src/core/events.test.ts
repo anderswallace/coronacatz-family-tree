@@ -4,6 +4,7 @@ import { Client, Events, Interaction } from "discord.js";
 import { setupAddListeners } from "../listeners/addListeners.js";
 import { handleHelpCommand } from "../commands/help.js";
 import { ServiceContainer } from "../services/index.js";
+import { handleSeedCommand } from "../commands/seed.js";
 
 vi.mock("../listeners/addListeners", () => ({
   setupAddListeners: vi.fn(),
@@ -11,6 +12,10 @@ vi.mock("../listeners/addListeners", () => ({
 
 vi.mock("../commands/help", () => ({
   handleHelpCommand: vi.fn(),
+}));
+
+vi.mock("../commands/seed", () => ({
+  handleSeedCommand: vi.fn(),
 }));
 
 const targetChannel = "family-tree";
@@ -29,7 +34,7 @@ describe("setupEvents", () => {
     expect(setupAddListeners).toHaveBeenCalledWith(
       client,
       mockServicesContainer,
-      targetChannel,
+      targetChannel
     );
   });
 
@@ -44,6 +49,19 @@ describe("setupEvents", () => {
     client.emit(Events.InteractionCreate, mockInteraction);
 
     expect(handleHelpCommand).toHaveBeenCalledWith(mockInteraction);
+  });
+
+  test("Should call handleSeedCommand when interaction is a chat interaction with 'seed' in command", () => {
+    setupEvents(client, mockServicesContainer, targetChannel);
+
+    const mockInteraction = {
+      isChatInputCommand: () => true,
+      commandName: "seed",
+    } as unknown as Interaction;
+
+    client.emit(Events.InteractionCreate, mockInteraction);
+
+    expect(handleSeedCommand).toHaveBeenCalledWith(mockInteraction);
   });
 
   test("Should not call handleHelpCommand for non-chat interactions", () => {

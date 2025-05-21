@@ -1,7 +1,8 @@
 import { REST, Routes, SlashCommandBuilder } from "discord.js";
 import { helpCommand } from "../commands/help.js";
+import { seedCommand } from "../commands/seed.js";
 
-const commands: SlashCommandBuilder[] = [helpCommand];
+const commands: SlashCommandBuilder[] = [helpCommand, seedCommand];
 
 export async function registerSlashCommands(
   discordToken: string,

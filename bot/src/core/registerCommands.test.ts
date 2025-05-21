@@ -22,6 +22,12 @@ vi.mock("../commands/help", () => ({
   },
 }));
 
+vi.mock("../commands/seed", () => ({
+  seedCommand: {
+    toJSON: () => ({ name: "seed", description: "mock seed command" }),
+  },
+}));
+
 describe("registerSlashCommands", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -36,7 +42,10 @@ describe("registerSlashCommands", () => {
     expect(mockPut).toHaveBeenCalledWith(
       "/applications/mock-client-id/commands",
       {
-        body: [{ name: "help", description: "mock help command" }],
+        body: [
+          { name: "help", description: "mock help command" },
+          { name: "seed", description: "mock seed command" },
+        ],
       }
     );
     expect(logSpy).toHaveBeenCalledWith("Slash commands registered.");
