@@ -32,7 +32,6 @@ export function GraphComponent({ nodes, edges }: GraphComponentProps) {
       nodes: {
         shape: "box",
         margin: { top: 10, right: 10, bottom: 10, left: 10 },
-        font: { color: "#333" },
       },
       edges: {
         arrows: {
