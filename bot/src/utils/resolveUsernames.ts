@@ -33,6 +33,6 @@ async function fetchUser(message: Message, userId: string) {
   return discordUser;
 }
 
-function assignNickname(user: GuildMember): string {
+export function assignNickname(user: GuildMember): string {
   return user.nickname ?? user.user.globalName ?? user.user.username;
 }

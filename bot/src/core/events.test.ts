@@ -19,6 +19,7 @@ vi.mock("../commands/seed", () => ({
 }));
 
 const targetChannel = "family-tree";
+const dbAdmin = "mock-db-admin";
 const mockServicesContainer = {} as unknown as ServiceContainer;
 
 describe("setupEvents", () => {
@@ -30,7 +31,7 @@ describe("setupEvents", () => {
   });
 
   test("Should call setupAddListeners", () => {
-    setupEvents(client, mockServicesContainer, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel, dbAdmin);
     expect(setupAddListeners).toHaveBeenCalledWith(
       client,
       mockServicesContainer,
@@ -39,7 +40,7 @@ describe("setupEvents", () => {
   });
 
   test("Should call handleHelpCommand when interaction is a chat interaction with 'help' in command", () => {
-    setupEvents(client, mockServicesContainer, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel, dbAdmin);
 
     const mockInteraction = {
       isChatInputCommand: () => true,
@@ -52,7 +53,7 @@ describe("setupEvents", () => {
   });
 
   test("Should call handleSeedCommand when interaction is a chat interaction with 'seed' in command", () => {
-    setupEvents(client, mockServicesContainer, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel, dbAdmin);
 
     const mockInteraction = {
       isChatInputCommand: () => true,
@@ -61,11 +62,11 @@ describe("setupEvents", () => {
 
     client.emit(Events.InteractionCreate, mockInteraction);
 
-    expect(handleSeedCommand).toHaveBeenCalledWith(mockInteraction);
+    expect(handleSeedCommand).toHaveBeenCalledWith(mockInteraction, dbAdmin);
   });
 
   test("Should not call handleHelpCommand for non-chat interactions", () => {
-    setupEvents(client, mockServicesContainer, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel, dbAdmin);
 
     const mockInteraction = {
       isChatInputCommand: () => false,
@@ -77,7 +78,7 @@ describe("setupEvents", () => {
   });
 
   test("Should not call handleHelpCommand for chat interaction that is not help command", () => {
-    setupEvents(client, mockServicesContainer, targetChannel);
+    setupEvents(client, mockServicesContainer, targetChannel, dbAdmin);
 
     const mockInteraction = {
       isChatInputCommand: () => true,

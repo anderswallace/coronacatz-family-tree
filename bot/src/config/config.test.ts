@@ -12,6 +12,7 @@ describe("config", () => {
       DISCORD_TOKEN: "mock-token",
       CLIENT_ID: "mock-client-id",
       TARGET_CHANNEL: "mock-target-channel",
+      DB_ADMIN: "mock-db-admin",
     };
 
     const config = getConfig(env);
@@ -19,6 +20,7 @@ describe("config", () => {
     expect(config.discordToken).toBe("mock-token");
     expect(config.clientId).toBe("mock-client-id");
     expect(config.targetChannel).toBe("mock-target-channel");
+    expect(config.dbAdmin).toBe("mock-db-admin");
   });
 
   test("Should throw error when .env secrets are missing", async () => {
