@@ -24,7 +24,7 @@ export function setupEvents(
         break;
 
       case "seed":
-        await handleSeedCommand(interaction, admin);
+        await handleSeedCommand(interaction, admin, services);
         break;
     }
   });

@@ -1,7 +1,7 @@
 import {
   PrismaOperationError,
   UserAlreadyExistsError,
-  UserNotFoundError,
+  UserNotFoundError
 } from "../../errors/customErrors.js";
 import { IDatabaseService } from "./IDatabaseService.js";
 import { Prisma, PrismaClient, Node } from "@prisma/client";
@@ -11,7 +11,7 @@ export class DatabaseService implements IDatabaseService {
 
   async fetchNodeById(userId: string): Promise<Node> {
     const node = await this.prismaClient.node.findUnique({
-      where: { userId },
+      where: { userId }
     });
 
     if (!node) {
@@ -21,7 +21,7 @@ export class DatabaseService implements IDatabaseService {
     return node;
   }
 
-  // Upload userId to database under parentId
+  // Upload userId to database under parentId, where userId and name belong to user to be uploaded
   async uploadNode(
     userId: string,
     parentId: string,
@@ -36,8 +36,8 @@ export class DatabaseService implements IDatabaseService {
           name,
           parentId,
           group: parent.group,
-          color: parent.color,
-        },
+          color: parent.color
+        }
       });
     } catch (err) {
       if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -64,7 +64,7 @@ export class DatabaseService implements IDatabaseService {
       operations.push(
         this.prismaClient.node.updateMany({
           where: { parentId: userId },
-          data: { parentId: parent.userId },
+          data: { parentId: parent.userId }
         })
       );
 
@@ -73,7 +73,7 @@ export class DatabaseService implements IDatabaseService {
         operations.push(
           this.prismaClient.node.updateMany({
             where: { group: user.group },
-            data: { group: parent.group, color: parent.color },
+            data: { group: parent.group, color: parent.color }
           })
         );
       }
@@ -81,7 +81,7 @@ export class DatabaseService implements IDatabaseService {
       // remove node
       operations.push(
         this.prismaClient.node.delete({
-          where: { userId },
+          where: { userId }
         })
       );
 
