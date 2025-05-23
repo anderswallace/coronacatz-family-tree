@@ -46,7 +46,7 @@ export async function handleSeedCommand(
     .forEach((member) => members.set(assignNickname(member), member));
 
   // Upload edges from seedEdges and return number of added members
-  const insertedMembers = uploadSeedEdges(services, members);
+  const insertedMembers = await uploadSeedEdges(services, members);
 
   await interaction.reply({
     content: `DB seed complete. Added ${insertedMembers} new members. Total number of users: ${members.size}`,

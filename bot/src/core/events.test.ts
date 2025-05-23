@@ -7,15 +7,15 @@ import { ServiceContainer } from "../services/index.js";
 import { handleSeedCommand } from "../commands/seed.js";
 
 vi.mock("../listeners/addListeners", () => ({
-  setupAddListeners: vi.fn(),
+  setupAddListeners: vi.fn()
 }));
 
 vi.mock("../commands/help", () => ({
-  handleHelpCommand: vi.fn(),
+  handleHelpCommand: vi.fn()
 }));
 
 vi.mock("../commands/seed", () => ({
-  handleSeedCommand: vi.fn(),
+  handleSeedCommand: vi.fn()
 }));
 
 const targetChannel = "family-tree";
@@ -44,7 +44,7 @@ describe("setupEvents", () => {
 
     const mockInteraction = {
       isChatInputCommand: () => true,
-      commandName: "help",
+      commandName: "help"
     } as unknown as Interaction;
 
     client.emit(Events.InteractionCreate, mockInteraction);
@@ -57,19 +57,23 @@ describe("setupEvents", () => {
 
     const mockInteraction = {
       isChatInputCommand: () => true,
-      commandName: "seed",
+      commandName: "seed"
     } as unknown as Interaction;
 
     client.emit(Events.InteractionCreate, mockInteraction);
 
-    expect(handleSeedCommand).toHaveBeenCalledWith(mockInteraction, dbAdmin);
+    expect(handleSeedCommand).toHaveBeenCalledWith(
+      mockInteraction,
+      dbAdmin,
+      mockServicesContainer
+    );
   });
 
   test("Should not call handleHelpCommand for non-chat interactions", () => {
     setupEvents(client, mockServicesContainer, targetChannel, dbAdmin);
 
     const mockInteraction = {
-      isChatInputCommand: () => false,
+      isChatInputCommand: () => false
     } as unknown as Interaction;
 
     client.emit(Events.InteractionCreate, mockInteraction);
@@ -82,7 +86,7 @@ describe("setupEvents", () => {
 
     const mockInteraction = {
       isChatInputCommand: () => true,
-      commandName: "other",
+      commandName: "other"
     } as unknown as Interaction;
 
     client.emit(Events.InteractionCreate, mockInteraction);
