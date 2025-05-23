@@ -1,9 +1,10 @@
 import {
   PrismaOperationError,
+  UserAlreadyExistsError,
   UserNotFoundError,
 } from "../../errors/customErrors.js";
 import { IDatabaseService } from "./IDatabaseService.js";
-import { PrismaClient, Node } from "@prisma/client";
+import { Prisma, PrismaClient, Node } from "@prisma/client";
 
 export class DatabaseService implements IDatabaseService {
   constructor(private prismaClient: PrismaClient) {}
@@ -39,7 +40,11 @@ export class DatabaseService implements IDatabaseService {
         },
       });
     } catch (err) {
-      if (err instanceof Error) {
+      if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        if (err.code === "P2002") {
+          throw new UserAlreadyExistsError(name);
+        }
+      } else if (err instanceof Error) {
         throw new PrismaOperationError(err.message);
       } else {
         throw new PrismaOperationError("Unknown Prisma Error");
@@ -52,11 +57,6 @@ export class DatabaseService implements IDatabaseService {
     try {
       const user = await this.fetchNodeById(userId);
       const parent = await this.fetchNodeById(user.parentId);
-
-      // fetch children who will be re-parented
-      const children = await this.prismaClient.node.findMany({
-        where: { parentId: userId },
-      });
 
       const operations = [];
 

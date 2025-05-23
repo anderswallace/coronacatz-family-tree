@@ -6,6 +6,14 @@ export class UserNotFoundError extends Error {
   }
 }
 
+export class UserAlreadyExistsError extends Error {
+  constructor(public username: string) {
+    super(`User with username __${username}__ already exists in the database`);
+    this.name = "UserAlreadyExistsError";
+    Object.setPrototypeOf(this, UserAlreadyExistsError.prototype);
+  }
+}
+
 export class PrismaOperationError extends Error {
   constructor(message: string) {
     super(`Database operation failed: ${message}`);

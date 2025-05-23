@@ -2,6 +2,7 @@ import { describe, test, expect } from "vitest";
 import {
   ConfigError,
   PrismaOperationError,
+  UserAlreadyExistsError,
   UserNotFoundError,
 } from "./customErrors.js";
 
@@ -13,6 +14,20 @@ describe("customError", () => {
     } catch (error) {
       if (error instanceof UserNotFoundError) {
         expect(error.name).toBe("UserNotFoundError");
+        expect(error.message.includes(mockId)).toBe(true);
+      } else {
+        throw error;
+      }
+    }
+  });
+
+  test("UserAlreadyExistsError error should throw properly formatted message", () => {
+    const mockId = "mock-id";
+    try {
+      throw new UserAlreadyExistsError(mockId);
+    } catch (error) {
+      if (error instanceof UserAlreadyExistsError) {
+        expect(error.name).toBe("UserAlreadyExistsError");
         expect(error.message.includes(mockId)).toBe(true);
       } else {
         throw error;

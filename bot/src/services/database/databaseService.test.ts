@@ -2,8 +2,9 @@ import { describe, test, expect, vi, Mock, afterEach } from "vitest";
 import {
   UserNotFoundError,
   PrismaOperationError,
+  UserAlreadyExistsError,
 } from "../../errors/customErrors.js";
-import { PrismaClient, Node } from "@prisma/client";
+import { Prisma, PrismaClient, Node } from "@prisma/client";
 import { DatabaseService } from "./databaseService.js";
 
 const prismaMock = {
@@ -89,6 +90,42 @@ describe("databaseService", () => {
         color: mockParentNode.color,
       },
     });
+  });
+
+  test("uploadNode should throw UserAlreadyExistsError if user already exists", async () => {
+    const mockUserId = "mock-user-id";
+    const mockParentId = "mock-parent-id";
+    const mockName = "mock-name";
+
+    const mockParentNode: Node = {
+      userId: mockParentId,
+      name: "mock-parent-name",
+      parentId: "mock-parent-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // create prisma-like error for known request error
+    const prismaError = Object.setPrototypeOf(
+      Object.assign(new Error("Unique constraint failed"), {
+        code: "P2002",
+        clientVersion: "6.7.0",
+        meta: { target: ["userId"] },
+      }),
+      // make instanceof work
+      Prisma.PrismaClientKnownRequestError.prototype
+    );
+
+    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (prismaMock.node.create as Mock).mockRejectedValue(prismaError);
+
+    const service = new DatabaseService(prismaMock);
+
+    await expect(
+      service.uploadNode(mockUserId, mockParentId, mockName)
+    ).rejects.toThrow(UserAlreadyExistsError);
   });
 
   test("uploadNode should throw PrismaOperationError if write operation fails", async () => {
