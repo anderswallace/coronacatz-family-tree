@@ -6,17 +6,17 @@ import type { ServiceContainer } from "../services/index.js";
 import { UserAlreadyExistsError } from "../errors/customErrors.js";
 
 vi.mock("../utils/resolveUsernames.js", () => ({
-  assignNickname: (m: any) => m.nickname // passthrough
+  assignNickname: (m: any) => m.nickname, // passthrough
 }));
 
 vi.mock("../data/seedEdges.json", () => ({
-  default: [{ parent: "Parent", child: "Child" }]
+  default: [{ parent: "Parent", child: "Child" }],
 }));
 
 function fakeMember(nickname: string, id: string, bot = false): GuildMember {
   return {
     nickname,
-    user: { id, bot }
+    user: { id, bot },
   } as unknown as GuildMember;
 }
 
@@ -30,7 +30,7 @@ function memberCollection(...members: GuildMember[]) {
 const mockUpload = vi.fn();
 
 const services = {
-  databaseService: { uploadNode: mockUpload }
+  databaseService: { uploadNode: mockUpload },
 } as unknown as ServiceContainer;
 
 describe("handleSeedCommand", () => {
@@ -40,22 +40,22 @@ describe("handleSeedCommand", () => {
 
   test("handleSeedCommand should have correct metadata", () => {
     expect(seedCommand.name).toBe("seed");
-    expect(seedCommand.description).toMatch(/populate db/i);
+    expect(seedCommand.description).toContain("Populate DB");
   });
 
-  test("handleSeedCommadn should block non-admin users", async () => {
+  test("handleSeedCommand should block non-admin users", async () => {
     const reply = vi.fn();
 
     const interaction = {
       user: { id: "not-admin" },
-      reply
+      reply,
     } as unknown as ChatInputCommandInteraction;
 
     await handleSeedCommand(interaction, "admin-id", services);
 
     expect(reply).toHaveBeenCalledOnce();
     expect(reply.mock.calls[0][0].flags).toBe(MessageFlags.Ephemeral);
-    expect(reply.mock.calls[0][0].content).toMatch(/do not have access/i);
+    expect(reply.mock.calls[0][0].content).toContain("do not have access");
     expect(mockUpload).not.toHaveBeenCalled();
   });
 
@@ -65,13 +65,13 @@ describe("handleSeedCommand", () => {
     const interaction = {
       user: { id: "admin-id" },
       guild: null,
-      reply
+      reply,
     } as unknown as ChatInputCommandInteraction;
 
     await handleSeedCommand(interaction, "admin-id", services);
 
     expect(reply).toHaveBeenCalledOnce();
-    expect(reply.mock.calls[0][0].content).toMatch(/no guild/i);
+    expect(reply.mock.calls[0][0].content).toContain("No guild");
   });
 
   test("handleSeedCommand should upload edges from seed data", async () => {
@@ -83,10 +83,10 @@ describe("handleSeedCommand", () => {
         members: {
           fetch: vi
             .fn()
-            .mockResolvedValue(memberCollection(parentMember, childMember))
-        }
+            .mockResolvedValue(memberCollection(parentMember, childMember)),
+        },
       },
-      reply
+      reply,
     } as unknown as ChatInputCommandInteraction;
 
     await handleSeedCommand(interaction, "admin-id", services);
@@ -97,8 +97,8 @@ describe("handleSeedCommand", () => {
     await vi.waitFor(() => {
       const replyArgs = reply.mock.calls[0][0];
       expect(replyArgs.flags).toBe(MessageFlags.Ephemeral);
-      expect(replyArgs.content).toMatch(/Added 1 new members/i);
-      expect(replyArgs.content).toMatch(/Total number of users: 2/i);
+      expect(replyArgs.content).toContain("Added 1 new members");
+      expect(replyArgs.content).toContain("Total number of users: 2");
     });
   });
 
@@ -111,7 +111,7 @@ describe("handleSeedCommand", () => {
       .mockRejectedValue(new UserAlreadyExistsError("Child"));
 
     const dupServices = {
-      databaseService: { uploadNode: duplicateUpload }
+      databaseService: { uploadNode: duplicateUpload },
     } as unknown as ServiceContainer;
 
     const interaction = {
@@ -120,10 +120,10 @@ describe("handleSeedCommand", () => {
         members: {
           fetch: vi
             .fn()
-            .mockResolvedValue(memberCollection(parentMember, childMember))
-        }
+            .mockResolvedValue(memberCollection(parentMember, childMember)),
+        },
       },
-      reply
+      reply,
     } as unknown as ChatInputCommandInteraction;
 
     await handleSeedCommand(interaction, "admin-id", dupServices);
@@ -132,7 +132,7 @@ describe("handleSeedCommand", () => {
     expect(duplicateUpload).toHaveBeenCalledOnce();
 
     const replyArgs = reply.mock.calls[0][0];
-    expect(replyArgs.content).toMatch(/added 0 new members/i);
+    expect(replyArgs.content).toContain("Added 0 new members");
   });
 
   test("handleSeedCommand should not call uploadNode for absent child", async () => {
@@ -145,10 +145,10 @@ describe("handleSeedCommand", () => {
         members: {
           fetch: vi
             .fn()
-            .mockResolvedValue(memberCollection(parentMember /* no child */))
-        }
+            .mockResolvedValue(memberCollection(parentMember /* no child */)),
+        },
       },
-      reply
+      reply,
     } as unknown as ChatInputCommandInteraction;
 
     await handleSeedCommand(interaction, "admin-id", services);
@@ -157,7 +157,7 @@ describe("handleSeedCommand", () => {
     expect(mockUpload).not.toHaveBeenCalled();
 
     const replyArgs = reply.mock.calls[0][0];
-    expect(replyArgs.content).toMatch(/added 0 new members/i);
+    expect(replyArgs.content).toContain("Added 0 new members");
   });
 
   test("handleSeedCommand should throw an error when it catches error that is not UserAlreadyExistsError", async () => {
@@ -168,7 +168,7 @@ describe("handleSeedCommand", () => {
       .mockRejectedValue(new Error("Some other error"));
 
     const dupServices = {
-      databaseService: { uploadNode: duplicateUpload }
+      databaseService: { uploadNode: duplicateUpload },
     } as unknown as ServiceContainer;
 
     const interaction = {
@@ -177,10 +177,10 @@ describe("handleSeedCommand", () => {
         members: {
           fetch: vi
             .fn()
-            .mockResolvedValue(memberCollection(parentMember, childMember))
-        }
+            .mockResolvedValue(memberCollection(parentMember, childMember)),
+        },
       },
-      reply
+      reply,
     } as unknown as ChatInputCommandInteraction;
 
     await expect(

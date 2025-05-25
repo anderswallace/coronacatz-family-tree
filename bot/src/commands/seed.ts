@@ -2,7 +2,7 @@ import {
   ChatInputCommandInteraction,
   GuildMember,
   MessageFlags,
-  SlashCommandBuilder
+  SlashCommandBuilder,
 } from "discord.js";
 import { assignNickname } from "../utils/resolveUsernames.js";
 import { ServiceContainer } from "../services/index.js";
@@ -22,7 +22,7 @@ export async function handleSeedCommand(
   if (interaction.user.id !== admin) {
     await interaction.reply({
       content: "You do not have access to this command",
-      flags: MessageFlags.Ephemeral
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -31,7 +31,7 @@ export async function handleSeedCommand(
   if (!guild) {
     await interaction.reply({
       content: "Unable to seed DB: No guild information available",
-      flags: MessageFlags.Ephemeral
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -50,7 +50,7 @@ export async function handleSeedCommand(
 
   await interaction.reply({
     content: `DB seed complete. Added ${insertedMembers} new members. Total number of users: ${members.size}`,
-    flags: MessageFlags.Ephemeral
+    flags: MessageFlags.Ephemeral,
   });
 }
 
@@ -73,7 +73,7 @@ async function uploadSeedEdges(
     const childMember = members.get(child);
 
     if (!parentMember || !childMember) {
-      console.warn(`[seed] Skip ${parent} => ${child} (member missing)`);
+      console.warn(`[seed] Skipping ${parent} => ${child} (member missing)`);
       skipped++;
       continue;
     }
@@ -92,7 +92,9 @@ async function uploadSeedEdges(
     }
   }
 
-  console.warn(`Warning: ${skipped} users skipped in seeding`);
+  if (skipped > 0) {
+    console.warn(`Warning: ${skipped} users skipped in seeding`);
+  }
 
   return inserted;
 }
