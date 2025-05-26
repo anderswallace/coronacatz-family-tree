@@ -42,10 +42,7 @@ describe("registerSlashCommands", () => {
     expect(mockPut).toHaveBeenCalledWith(
       "/applications/mock-client-id/commands",
       {
-        body: [
-          { name: "help", description: "mock help command" },
-          { name: "seed", description: "mock seed command" },
-        ],
+        body: [{ name: "help", description: "mock help command" }],
       }
     );
     expect(logSpy).toHaveBeenCalledWith("Slash commands registered.");

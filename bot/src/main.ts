@@ -16,6 +16,6 @@ export async function main() {
   });
 
   await registerSlashCommands(config.discordToken, config.clientId);
-  setupEvents(discordClient, services, config.targetChannel, config.dbAdmin);
+  setupEvents(discordClient, services, config.targetChannel);
   discordClient.login(config.discordToken);
 }
