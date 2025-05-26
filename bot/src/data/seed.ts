@@ -3,6 +3,7 @@ import { assignNickname } from "../utils/resolveUsernames.js";
 import { ServiceContainer } from "../services/index.js";
 import seedEdges from "../data/seedEdges.json" with { type: "json" };
 import { UserAlreadyExistsError } from "../errors/customErrors.js";
+import { Edge } from "../types/graph.js";
 
 export async function seedDb(guild: Guild, services: ServiceContainer) {
   // Return all members of the server, create map to lookup user by nickname
@@ -31,11 +32,10 @@ async function uploadSeedEdges(
   let inserted = 0;
   let skipped = 0;
 
+  const edges: Edge[] = seedEdges;
+
   // Loop over seed data and extract matching GuildMembers from the server to be uploaded to the DB
-  for (const { parent, child } of seedEdges as {
-    parent: string;
-    child: string;
-  }[]) {
+  for (const { parent, child } of edges) {
     // Retrieve GuildMember from server list
     const parentMember = members.get(parent);
     const childMember = members.get(child);

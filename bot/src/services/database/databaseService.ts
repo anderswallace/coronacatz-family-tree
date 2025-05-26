@@ -24,30 +24,41 @@ export class DatabaseService implements IDatabaseService {
     return node;
   }
 
+  // private helper upload function for transactions
+  private async _uploadNode(
+    tx: Prisma.TransactionClient,
+    childId: string,
+    parentId: string,
+    name: string
+  ) {
+    const parent = await this._fetchNodeById(tx, parentId);
+
+    // assign appropriate values from parent and upload
+    await tx.node.create({
+      data: {
+        userId: childId,
+        name,
+        parentId,
+        group: parent.group,
+        color: parent.color,
+      },
+    });
+  }
+
   public async fetchNodeById(userId: string): Promise<Node> {
     return this._fetchNodeById(this.prismaClient, userId);
   }
 
   // Upload userId to database under parentId, where userId and name belong to user to be uploaded
-  async uploadNode(
+  public async uploadNode(
     userId: string,
     parentId: string,
     name: string
   ): Promise<void> {
+    // create transaction client for atomicity
     await this.prismaClient
       .$transaction(async (tx) => {
-        const parent = await this._fetchNodeById(tx, parentId);
-
-        // create and upload the new node
-        await tx.node.create({
-          data: {
-            userId,
-            name,
-            parentId,
-            group: parent.group,
-            color: parent.color,
-          },
-        });
+        await this._uploadNode(tx, userId, parentId, name);
       })
       .catch((err) => {
         if (
@@ -64,7 +75,7 @@ export class DatabaseService implements IDatabaseService {
   }
 
   // remove selected userId re-parent all its children to its parent node
-  async removeNode(userId: string): Promise<void> {
+  public async removeNode(userId: string): Promise<void> {
     try {
       const user = await this.fetchNodeById(userId);
       const parent = await this.fetchNodeById(user.parentId);

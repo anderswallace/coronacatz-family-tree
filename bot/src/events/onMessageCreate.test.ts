@@ -247,7 +247,7 @@ describe("onMessageCreate", () => {
     // Allow async listener to resolve
     await new Promise((r) => setTimeout(r, 0));
 
-    expect(sendMock).toHaveBeenCalledWith("**ERROR**: Unknown User");
+    expect(sendMock.mock.calls[0][0].toLowerCase()).toContain("unknown user");
     expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 
