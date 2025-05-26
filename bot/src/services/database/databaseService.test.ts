@@ -6,6 +6,7 @@ import {
 } from "../../errors/customErrors.js";
 import { Prisma, PrismaClient, Node } from "@prisma/client";
 import { DatabaseService } from "./databaseService.js";
+import { makeTxMock, stubTransaction } from "../../test/testUtils.js";
 
 const prismaMock = {
   node: {
@@ -70,18 +71,23 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
-    (prismaMock.node.create as Mock).mockResolvedValue({} as Node);
+    // create mock transaction
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockResolvedValue({} as Node);
 
     const service = new DatabaseService(prismaMock);
 
     await service.uploadNode(mockUserId, mockParentId, mockName);
 
-    expect(prismaMock.node.findUnique).toHaveBeenCalledWith({
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(txMock.node.findUnique).toHaveBeenCalledWith({
       where: { userId: mockParentId },
     });
 
-    expect(prismaMock.node.create).toHaveBeenCalledWith({
+    expect(txMock.node.create).toHaveBeenCalledWith({
       data: {
         userId: mockUserId,
         name: mockName,
@@ -118,8 +124,11 @@ describe("databaseService", () => {
       Prisma.PrismaClientKnownRequestError.prototype
     );
 
-    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
-    (prismaMock.node.create as Mock).mockRejectedValue(prismaError);
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockRejectedValue(prismaError);
 
     const service = new DatabaseService(prismaMock);
 
@@ -143,8 +152,11 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
-    (prismaMock.node.create as Mock).mockRejectedValue(
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockRejectedValue(
       new Error("DB Write Operation Failed")
     );
 
@@ -170,8 +182,11 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
-    (prismaMock.node.create as Mock).mockRejectedValue("Unexpected Value");
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockRejectedValue("Unexpected Value");
 
     const service = new DatabaseService(prismaMock);
 
@@ -208,6 +223,10 @@ describe("databaseService", () => {
 
     const mockChildren: Node[] = [];
 
+    // revert mock implementation of transaction for batch style that removeNode has
+    (prismaMock as any).$transaction = vi.fn(async (ops: any[]) =>
+      Promise.all(ops)
+    );
     // mock findMany to return no children
     (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
 
