@@ -74,6 +74,30 @@ export class DatabaseService implements IDatabaseService {
       });
   }
 
+  // Upload a batch of edges all at once, utilizing transaction client for atomicity
+  public async uploadNodes(
+    edges: { childId: string; parentId: string; name: string }[]
+  ): Promise<number> {
+    let inserted = 0;
+
+    // create transaction client for all or nothing operation on edges
+    await this.prismaClient.$transaction(async (tx) => {
+      for (const edge of edges) {
+        try {
+          await this._uploadNode(tx, edge.childId, edge.parentId, edge.name);
+          inserted++;
+        } catch (err) {
+          // we can continue looping as this does not cause errors in overall data shape
+          if (err instanceof UserAlreadyExistsError) continue;
+          // any other error, we break out of operation and cancel entire batch
+          throw err;
+        }
+      }
+    });
+
+    return inserted;
+  }
+
   // remove selected userId re-parent all its children to its parent node
   public async removeNode(userId: string): Promise<void> {
     try {

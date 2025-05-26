@@ -2,8 +2,7 @@ import { Guild, GuildMember } from "discord.js";
 import { assignNickname } from "../utils/resolveUsernames.js";
 import { ServiceContainer } from "../services/index.js";
 import seedEdges from "../data/seedEdges.json" with { type: "json" };
-import { UserAlreadyExistsError } from "../errors/customErrors.js";
-import { Edge } from "../types/graph.js";
+import { Edge, ConstructedEdge } from "../types/graph.js";
 
 export async function seedDb(guild: Guild, services: ServiceContainer) {
   // Return all members of the server, create map to lookup user by nickname
@@ -29,40 +28,35 @@ async function uploadSeedEdges(
   services: ServiceContainer,
   members: Map<string, GuildMember>
 ): Promise<number> {
-  let inserted = 0;
   let skipped = 0;
+  const edges: ConstructedEdge[] = [];
 
-  const edges: Edge[] = seedEdges;
+  const simpleEdges: Edge[] = seedEdges;
 
   // Loop over seed data and extract matching GuildMembers from the server to be uploaded to the DB
-  for (const { parent, child } of edges) {
+  for (const { parent, child } of simpleEdges) {
     // Retrieve GuildMember from server list
     const parentMember = members.get(parent);
     const childMember = members.get(child);
 
+    // log any members who are in seed data but not in the server
     if (!parentMember || !childMember) {
       console.warn(`[seed] Skipping ${parent} => ${child} (member missing)`);
       skipped++;
       continue;
     }
 
-    try {
-      await services.databaseService.uploadNode(
-        childMember.user.id,
-        parentMember.user.id,
-        child
-      );
-      inserted++;
-    } catch (err) {
-      if (!(err instanceof UserAlreadyExistsError)) {
-        throw err;
-      }
-    }
+    // add edge to batch to be uploaded
+    edges.push({
+      childId: childMember.user.id,
+      parentId: parentMember.user.id,
+      name: child,
+    });
   }
 
   if (skipped > 0) {
     console.warn(`Warning: ${skipped} users skipped in seeding`);
   }
 
-  return inserted;
+  return services.databaseService.uploadNodes(edges);
 }
