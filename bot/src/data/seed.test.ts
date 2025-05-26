@@ -1,13 +1,7 @@
 import { describe, test, expect, vi, afterEach } from "vitest";
-import type {
-  ChatInputCommandInteraction,
-  GuildMember,
-  Guild,
-} from "discord.js";
-import { MessageFlags } from "discord.js";
+import type { GuildMember, Guild } from "discord.js";
 import { seedDb } from "./seed.js";
 import type { ServiceContainer } from "../services/index.js";
-import { UserAlreadyExistsError } from "../errors/customErrors.js";
 
 vi.mock("../utils/resolveUsernames.js", () => ({
   assignNickname: (m: any) => m.nickname, // passthrough
