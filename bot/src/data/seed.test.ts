@@ -44,16 +44,69 @@ describe("seedDb", () => {
     vi.clearAllMocks();
   });
 
-  test("seedDb should upload edges from seed data", async () => {
-    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+  test("seedDb should call uploadNodes with the constructed edge list", async () => {
     const uploadNodesSpy = vi.spyOn(services.databaseService, "uploadNodes");
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
     await seedDb(guild, services);
 
+    expect(uploadNodesSpy).toHaveBeenCalledTimes(1);
+    expect(uploadNodesSpy.mock.calls[0][0]).toEqual([
+      {
+        childId: "child-id",
+        parentId: "parent-id",
+        name: "Child",
+      },
+    ]);
     await vi.waitFor(() => {
       expect(logSpy).toHaveBeenCalledTimes(1);
       expect(logSpy.mock.calls[0][0]).toContain("DB seed complete.");
       expect(logSpy.mock.calls[0][0]).toContain("Total number of users: 2");
     });
+  });
+
+  test("seedDb should skip edges whose members are missing and log a warning", async () => {
+    // guild only contains Parent (no Child) - edge is skipped
+    const incompleteGuild = {
+      members: {
+        fetch: vi.fn().mockResolvedValue(memberCollection(parentMember)),
+      },
+    } as unknown as Guild;
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const uploadNodesSpy = vi.spyOn(services.databaseService, "uploadNodes");
+
+    await seedDb(incompleteGuild, services);
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[seed] Skipping Parent => Child")
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("users skipped")
+    );
+    expect(uploadNodesSpy).toHaveBeenCalledWith([]); // nothing inserted
+  });
+
+  test("seedDb should filter out bot users before constructing edges", async () => {
+    const botChild = fakeMember("Child", "child-id", true); // bot flag set to true
+
+    const botGuild = {
+      members: {
+        fetch: vi
+          .fn()
+          .mockResolvedValue(memberCollection(parentMember, botChild)),
+      },
+    } as unknown as Guild;
+
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const uploadNodesSpy = vi.spyOn(services.databaseService, "uploadNodes");
+
+    await seedDb(botGuild, services);
+
+    // because Child is a bot, nickname-lookup fails - edge skipped
+    expect(uploadNodesSpy).toHaveBeenCalledWith([]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("[seed] Skipping Parent => Child")
+    );
   });
 });
