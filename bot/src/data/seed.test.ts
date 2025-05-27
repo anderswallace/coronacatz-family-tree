@@ -21,15 +21,9 @@ function fakeMember(nickname: string, id: string, bot = false): GuildMember {
 const parentMember = fakeMember("Parent", "parent-id");
 const childMember = fakeMember("Child", "child-id");
 
-function memberCollection(...members: GuildMember[]) {
-  return members; // sufficient for .filter() & .forEach() inside seed.ts
-}
-
 const guild = {
   members: {
-    fetch: vi
-      .fn()
-      .mockResolvedValue(memberCollection(parentMember, childMember)),
+    fetch: vi.fn().mockResolvedValue([parentMember, childMember]),
   },
 } as unknown as Guild;
 
@@ -69,7 +63,7 @@ describe("seedDb", () => {
     // guild only contains Parent (no Child) - edge is skipped
     const incompleteGuild = {
       members: {
-        fetch: vi.fn().mockResolvedValue(memberCollection(parentMember)),
+        fetch: vi.fn().mockResolvedValue([parentMember]),
       },
     } as unknown as Guild;
 
@@ -92,9 +86,7 @@ describe("seedDb", () => {
 
     const botGuild = {
       members: {
-        fetch: vi
-          .fn()
-          .mockResolvedValue(memberCollection(parentMember, botChild)),
+        fetch: vi.fn().mockResolvedValue([parentMember, botChild]),
       },
     } as unknown as Guild;
 

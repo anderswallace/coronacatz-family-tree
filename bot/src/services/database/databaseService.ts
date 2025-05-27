@@ -10,7 +10,7 @@ export class DatabaseService implements IDatabaseService {
   constructor(private prismaClient: PrismaClient) {}
 
   private async _fetchNodeById(
-    client: PrismaClient | Prisma.TransactionClient,
+    client: Prisma.TransactionClient,
     userId: string
   ) {
     const node = await client.node.findUnique({
@@ -24,7 +24,7 @@ export class DatabaseService implements IDatabaseService {
     return node;
   }
 
-  // private helper upload function for upload transactions
+  // private helper upload function for transactions
   private async _uploadNode(
     tx: Prisma.TransactionClient,
     childId: string,
@@ -88,9 +88,13 @@ export class DatabaseService implements IDatabaseService {
           inserted++;
         } catch (err) {
           // we can continue looping as this does not cause errors in overall data shape
-          if (err instanceof UserAlreadyExistsError) continue;
-          // any other error, we break out of operation and cancel entire batch
-          throw err;
+          if (err instanceof UserAlreadyExistsError) {
+            continue;
+
+            // any other error, we break out of operation and cancel entire batch
+          } else {
+            throw err;
+          }
         }
       }
     });
