@@ -58,5 +58,6 @@ async function uploadSeedEdges(
     console.warn(`Warning: ${skipped} users skipped in seeding`);
   }
 
+  // perform single batch upload operation
   return services.databaseService.uploadNodes(edges);
 }

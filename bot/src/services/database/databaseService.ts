@@ -24,7 +24,7 @@ export class DatabaseService implements IDatabaseService {
     return node;
   }
 
-  // private helper upload function for transactions
+  // private helper upload function for upload transactions
   private async _uploadNode(
     tx: Prisma.TransactionClient,
     childId: string,

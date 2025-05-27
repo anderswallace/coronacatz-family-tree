@@ -6,7 +6,11 @@ import {
 } from "../../errors/customErrors.js";
 import { Prisma, PrismaClient, Node } from "@prisma/client";
 import { DatabaseService } from "./databaseService.js";
-import { makeTxMock, stubTransaction } from "../../test/testUtils.js";
+import {
+  makeTxMock,
+  spyOnUpload,
+  stubTransaction,
+} from "../../test/testUtils.js";
 
 const prismaMock = {
   node: {
@@ -198,6 +202,74 @@ describe("databaseService", () => {
     await expect(
       service.uploadNode(mockUserId, mockParentId, mockName)
     ).rejects.toThrow(/Unknown Prisma Error/);
+  });
+
+  test("uploadNodes should upload batch of nodes successfully when there are no errors", async () => {
+    const edges = [
+      { childId: "c1", parentId: "p", name: "Child-1" },
+      { childId: "c2", parentId: "p", name: "Child-2" },
+    ];
+
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    const services = new DatabaseService(prismaMock);
+    const node = spyOnUpload(services).mockResolvedValue(undefined);
+
+    const count = await services.uploadNodes(edges);
+
+    expect(count).toBe(edges.length);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(node).toHaveBeenCalledTimes(2);
+    expect(node).toHaveBeenNthCalledWith(
+      1,
+      expect.anything(), // tx
+      "c1",
+      "p",
+      "Child-1"
+    );
+  });
+
+  test("uploadNodes should skip already existing users but continue execution", async () => {
+    const edges = [
+      { childId: "c1", parentId: "p", name: "Child-1" },
+      { childId: "c2", parentId: "p", name: "Child-2" },
+    ];
+
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    const services = new DatabaseService(prismaMock);
+    const node = spyOnUpload(services);
+
+    node
+      .mockRejectedValueOnce(new UserAlreadyExistsError("Duplicate User"))
+      .mockResolvedValueOnce(undefined);
+
+    const count = await services.uploadNodes(edges);
+
+    expect(count).toBe(1);
+    expect(node).toHaveBeenCalledTimes(2);
+  });
+
+  test("uploadNodes should throw error when non-UserAlreadyExists error occurs", async () => {
+    const edges = [
+      { childId: "c1", parentId: "p", name: "Child-1" },
+      { childId: "c2", parentId: "p", name: "Child-2" },
+    ];
+
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    const services = new DatabaseService(prismaMock);
+    const node = spyOnUpload(services);
+
+    node
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("Unexpected Error"));
+
+    await expect(services.uploadNodes(edges)).rejects.toThrow(Error);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
   });
 
   test("removeNode should remove selected userId from database", async () => {

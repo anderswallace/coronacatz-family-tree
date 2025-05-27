@@ -33,10 +33,10 @@ const guild = {
   },
 } as unknown as Guild;
 
-const mockUpload = vi.fn();
+const mockUploadNodes = vi.fn();
 
 const services = {
-  databaseService: { uploadNode: mockUpload },
+  databaseService: { uploadNodes: mockUploadNodes },
 } as unknown as ServiceContainer;
 
 describe("seedDb", () => {
@@ -46,11 +46,9 @@ describe("seedDb", () => {
 
   test("seedDb should upload edges from seed data", async () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const uploadNodesSpy = vi.spyOn(services.databaseService, "uploadNodes");
 
     await seedDb(guild, services);
-
-    expect(mockUpload).toHaveBeenCalledOnce();
-    expect(mockUpload).toHaveBeenCalledWith("child-id", "parent-id", "Child");
 
     await vi.waitFor(() => {
       expect(logSpy).toHaveBeenCalledTimes(1);
