@@ -22,6 +22,12 @@ vi.mock("../commands/help", () => ({
   },
 }));
 
+vi.mock("../commands/seed", () => ({
+  seedCommand: {
+    toJSON: () => ({ name: "seed", description: "mock seed command" }),
+  },
+}));
+
 describe("registerSlashCommands", () => {
   afterEach(() => {
     vi.clearAllMocks();

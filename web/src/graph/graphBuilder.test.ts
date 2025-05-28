@@ -14,7 +14,7 @@ describe("buildGraphFromNodes", () => {
         name: "mock-name-1",
         parentId: "mock-parent-id-1",
         group: "mock-group-1",
-        color: "mock-color-1",
+        color: "#ffffff", // white
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -23,15 +23,28 @@ describe("buildGraphFromNodes", () => {
         name: "mock-name-2",
         parentId: "mock-parent-id-2",
         group: "mock-group-2",
-        color: "mock-color-2",
+        color: "#000000", // black
         createdAt: new Date(),
         updatedAt: new Date(),
       },
     ];
 
+    // font color should be opposite the node color to contrast
     const expectedNodes = [
-      { id: "mockUser1", label: "mock-name-1", color: "mock-color-1" },
-      { id: "mockUser2", label: "mock-name-2", color: "mock-color-2" },
+      {
+        id: "mockUser1",
+        label: "mock-name-1",
+        color: "#ffffff",
+        font: { color: "#000000" },
+      },
+      {
+        id: "mockUser2",
+        label: "mock-name-2",
+        color: "#000000",
+        font: {
+          color: "#ffffff",
+        },
+      },
     ];
 
     const expectedEdges = [

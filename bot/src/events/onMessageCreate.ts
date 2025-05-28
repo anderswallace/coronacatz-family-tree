@@ -5,7 +5,7 @@ import { ServiceContainer } from "../services/index.js";
 
 export function createOnMessageCreate(
   services: ServiceContainer,
-  targetChannelName: string,
+  targetChannelName: string
 ) {
   return async function onMessageCreate(message: Message) {
     const channel = message.channel as TextChannel;
@@ -30,7 +30,7 @@ export function createOnMessageCreate(
       const resolvedNames = await resolveUsernames(message, childId, parentId);
       if (!resolvedNames) {
         await channel.send(
-          "One or more users couldn't be found. Please try again",
+          "One or more users couldn't be found. Please try again"
         );
         return;
       }
@@ -40,16 +40,16 @@ export function createOnMessageCreate(
       await services.databaseService.uploadNode(
         childId,
         parentId,
-        childUsername,
+        childUsername
       );
 
       await channel.send(
-        `Family tree updated! Added ${childUsername} to ${parentUsername}`,
+        `Family tree updated! Added ${childUsername} to ${parentUsername}`
       );
       await message.delete();
     } catch (error) {
       if (error instanceof Error) {
-        await channel.send(`Error: ${error.message}`);
+        await channel.send(`**ERROR**: ${error.message}`);
         await message.delete();
       } else {
         await channel.send("Unknown error.");

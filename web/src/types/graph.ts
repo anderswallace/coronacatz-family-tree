@@ -1,7 +1,10 @@
 export type GraphNode = {
   id: string;
   label: string;
-  color?: string;
+  color: string;
+  font: {
+    color: string;
+  };
 };
 
 export type GraphEdge = {

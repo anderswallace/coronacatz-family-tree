@@ -2,9 +2,15 @@ import { describe, test, expect, vi, Mock, afterEach } from "vitest";
 import {
   UserNotFoundError,
   PrismaOperationError,
+  UserAlreadyExistsError,
 } from "../../errors/customErrors.js";
-import { PrismaClient, Node } from "@prisma/client";
+import { Prisma, PrismaClient, Node } from "@prisma/client";
 import { DatabaseService } from "./databaseService.js";
+import {
+  makeTxMock,
+  spyOnUpload,
+  stubTransaction,
+} from "../../test/testUtils.js";
 
 const prismaMock = {
   node: {
@@ -69,18 +75,23 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
-    (prismaMock.node.create as Mock).mockResolvedValue({} as Node);
+    // create mock transaction
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockResolvedValue({} as Node);
 
     const service = new DatabaseService(prismaMock);
 
     await service.uploadNode(mockUserId, mockParentId, mockName);
 
-    expect(prismaMock.node.findUnique).toHaveBeenCalledWith({
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(txMock.node.findUnique).toHaveBeenCalledWith({
       where: { userId: mockParentId },
     });
 
-    expect(prismaMock.node.create).toHaveBeenCalledWith({
+    expect(txMock.node.create).toHaveBeenCalledWith({
       data: {
         userId: mockUserId,
         name: mockName,
@@ -89,6 +100,45 @@ describe("databaseService", () => {
         color: mockParentNode.color,
       },
     });
+  });
+
+  test("uploadNode should throw UserAlreadyExistsError if user already exists", async () => {
+    const mockUserId = "mock-user-id";
+    const mockParentId = "mock-parent-id";
+    const mockName = "mock-name";
+
+    const mockParentNode: Node = {
+      userId: mockParentId,
+      name: "mock-parent-name",
+      parentId: "mock-parent-parent-id",
+      group: "mock-group",
+      color: "#ffffff",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    // create prisma-like error for known request error
+    const prismaError = Object.setPrototypeOf(
+      Object.assign(new Error("Unique constraint failed"), {
+        code: "P2002",
+        clientVersion: "6.7.0",
+        meta: { target: ["userId"] },
+      }),
+      // make instanceof work
+      Prisma.PrismaClientKnownRequestError.prototype
+    );
+
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockRejectedValue(prismaError);
+
+    const service = new DatabaseService(prismaMock);
+
+    await expect(
+      service.uploadNode(mockUserId, mockParentId, mockName)
+    ).rejects.toThrow(UserAlreadyExistsError);
   });
 
   test("uploadNode should throw PrismaOperationError if write operation fails", async () => {
@@ -106,8 +156,11 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
-    (prismaMock.node.create as Mock).mockRejectedValue(
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockRejectedValue(
       new Error("DB Write Operation Failed")
     );
 
@@ -133,8 +186,11 @@ describe("databaseService", () => {
       updatedAt: new Date(),
     };
 
-    (prismaMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
-    (prismaMock.node.create as Mock).mockRejectedValue("Unexpected Value");
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    (txMock.node.findUnique as Mock).mockResolvedValue(mockParentNode);
+    (txMock.node.create as Mock).mockRejectedValue("Unexpected Value");
 
     const service = new DatabaseService(prismaMock);
 
@@ -146,6 +202,74 @@ describe("databaseService", () => {
     await expect(
       service.uploadNode(mockUserId, mockParentId, mockName)
     ).rejects.toThrow(/Unknown Prisma Error/);
+  });
+
+  test("uploadNodes should upload batch of nodes successfully when there are no errors", async () => {
+    const edges = [
+      { childId: "c1", parentId: "p", name: "Child-1" },
+      { childId: "c2", parentId: "p", name: "Child-2" },
+    ];
+
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    const services = new DatabaseService(prismaMock);
+    const node = spyOnUpload(services).mockResolvedValue(undefined);
+
+    const count = await services.uploadNodes(edges);
+
+    expect(count).toBe(edges.length);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
+    expect(node).toHaveBeenCalledTimes(2);
+    expect(node).toHaveBeenNthCalledWith(
+      1,
+      expect.anything(), // tx
+      "c1",
+      "p",
+      "Child-1"
+    );
+  });
+
+  test("uploadNodes should skip already existing users but continue execution", async () => {
+    const edges = [
+      { childId: "c1", parentId: "p", name: "Child-1" },
+      { childId: "c2", parentId: "p", name: "Child-2" },
+    ];
+
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    const services = new DatabaseService(prismaMock);
+    const node = spyOnUpload(services);
+
+    node
+      .mockRejectedValueOnce(new UserAlreadyExistsError("Duplicate User"))
+      .mockResolvedValueOnce(undefined);
+
+    const count = await services.uploadNodes(edges);
+
+    expect(count).toBe(1);
+    expect(node).toHaveBeenCalledTimes(2);
+  });
+
+  test("uploadNodes should throw error when non-UserAlreadyExists error occurs", async () => {
+    const edges = [
+      { childId: "c1", parentId: "p", name: "Child-1" },
+      { childId: "c2", parentId: "p", name: "Child-2" },
+    ];
+
+    const txMock = makeTxMock();
+    stubTransaction(prismaMock, txMock);
+
+    const services = new DatabaseService(prismaMock);
+    const node = spyOnUpload(services);
+
+    node
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("Unexpected Error"));
+
+    await expect(services.uploadNodes(edges)).rejects.toThrow(Error);
+    expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
   });
 
   test("removeNode should remove selected userId from database", async () => {
@@ -171,6 +295,10 @@ describe("databaseService", () => {
 
     const mockChildren: Node[] = [];
 
+    // revert mock implementation of transaction for batch style that removeNode has
+    (prismaMock as any).$transaction = vi.fn(async (ops: any[]) =>
+      Promise.all(ops)
+    );
     // mock findMany to return no children
     (prismaMock.node.findMany as Mock).mockResolvedValue(mockChildren);
 

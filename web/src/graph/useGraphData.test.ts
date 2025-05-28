@@ -56,8 +56,18 @@ describe("useGraphData", () => {
     // expected data that buildGraphFromNodes should create
     const graph = {
       nodes: [
-        { id: "mock-userid-1", label: "user-1-name", color: "#ffffff" },
-        { id: "mock-userid-2", label: "user-2-name", color: "#ffffff" },
+        {
+          id: "mock-userid-1",
+          label: "user-1-name",
+          color: "#ffffff",
+          font: { color: "#000000" },
+        },
+        {
+          id: "mock-userid-2",
+          label: "user-2-name",
+          color: "#ffffff",
+          font: { color: "#000000" },
+        },
       ] as GraphNode[],
       edges: [
         { id: "edge-0", from: "mock-user1-parent", to: "mock-userid-1" },

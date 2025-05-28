@@ -13,6 +13,10 @@ vi.mock("../commands/help", () => ({
   handleHelpCommand: vi.fn(),
 }));
 
+vi.mock("../commands/seed", () => ({
+  handleSeedCommand: vi.fn(),
+}));
+
 const targetChannel = "family-tree";
 const mockServicesContainer = {} as unknown as ServiceContainer;
 
@@ -29,7 +33,7 @@ describe("setupEvents", () => {
     expect(setupAddListeners).toHaveBeenCalledWith(
       client,
       mockServicesContainer,
-      targetChannel,
+      targetChannel
     );
   });
 

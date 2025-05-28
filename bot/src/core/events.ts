@@ -6,7 +6,7 @@ import { ServiceContainer } from "../services/index.js";
 export function setupEvents(
   discordClient: Client,
   services: ServiceContainer,
-  channel: string,
+  channel: string
 ) {
   setupAddListeners(discordClient, services, channel);
 
@@ -16,8 +16,10 @@ export function setupEvents(
       return;
     }
 
-    if (interaction.commandName === "help") {
-      await handleHelpCommand(interaction);
+    switch (interaction.commandName) {
+      case "help":
+        await handleHelpCommand(interaction);
+        break;
     }
   });
 }
