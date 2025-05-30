@@ -6,7 +6,7 @@ import { ServiceContainer } from "../services/index.js";
 export function setupEvents(
   discordClient: Client,
   services: ServiceContainer,
-  channel: string
+  channel: string,
 ) {
   setupAddListeners(discordClient, services, channel);
 

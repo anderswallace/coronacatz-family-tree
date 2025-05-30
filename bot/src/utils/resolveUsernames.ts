@@ -33,6 +33,7 @@ async function fetchUser(message: Message, userId: string) {
   return discordUser;
 }
 
+// Returns most human name assigned to GuildMember
 export function assignNickname(user: GuildMember): string {
   return user.nickname ?? user.user.globalName ?? user.user.username;
 }
