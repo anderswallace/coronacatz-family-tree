@@ -3,7 +3,7 @@ import { GuildMember, Message } from "discord.js";
 export async function resolveUsernames(
   message: Message,
   childId: string,
-  parentId: string
+  parentId: string,
 ): Promise<{ childUsername: string; parentUsername: string } | null> {
   const childUser = await fetchUser(message, childId);
   const parentUser = await fetchUser(message, parentId);
@@ -34,6 +34,7 @@ async function fetchUser(message: Message, userId: string) {
 }
 
 // Returns most human name assigned to GuildMember
-export function assignNickname(user: GuildMember): string {
-  return user.nickname ?? user.user.globalName ?? user.user.username;
+export function assignNickname(member: GuildMember): string {
+  // displayName is equivalent to: member.nickname ?? member.user.globalName ?? member.user.username;
+  return member.displayName;
 }
