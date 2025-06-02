@@ -38,8 +38,8 @@ async function fetchGuildMember(message: Message, userId: string) {
  * getter to retrieve a GuildMember display name, where displayName resolves in the order:
  * nickname -> globalName -> username
  *
- * @param  {GuildMember} member
- * @returns {string} displayName
+ * @param member - a GuildMember
+ * @returns {string} displayName - name that appears next to a user's avatar
  */
 export function getDisplayName(member: GuildMember): string {
   // displayName is equivalent to: member.nickname ?? member.user.globalName ?? member.user.username;

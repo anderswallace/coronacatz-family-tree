@@ -4,10 +4,11 @@ import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
 import { createOnMessageCreate } from "./onMessageCreate.js";
 import { ServiceContainer } from "../services/index.js";
+import { createDiscordChannel, DiscordChannel } from "../types/discord.js";
 
 vi.mock("../utils/resolveUsernames");
 
-const targetChannel = "family-tree";
+const targetChannel: DiscordChannel = createDiscordChannel("family-tree");
 
 const mockServices = {
   databaseService: {

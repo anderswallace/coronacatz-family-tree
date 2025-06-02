@@ -2,10 +2,11 @@ import { Message, TextChannel } from "discord.js";
 import { parseAddMessage } from "../utils/parseAddMessage.js";
 import { resolveUsernames } from "../utils/resolveUsernames.js";
 import { ServiceContainer } from "../services/index.js";
+import { DiscordChannel } from "../types/discord.js";
 
 export function createOnMessageCreate(
   services: ServiceContainer,
-  targetChannelName: string
+  targetChannelName: DiscordChannel,
 ) {
   return async function onMessageCreate(message: Message) {
     const channel = message.channel as TextChannel;
@@ -30,7 +31,7 @@ export function createOnMessageCreate(
       const resolvedNames = await resolveUsernames(message, childId, parentId);
       if (!resolvedNames) {
         await channel.send(
-          "One or more users couldn't be found. Please try again"
+          "One or more users couldn't be found. Please try again",
         );
         return;
       }
@@ -40,11 +41,11 @@ export function createOnMessageCreate(
       await services.databaseService.uploadNode(
         childId,
         parentId,
-        childUsername
+        childUsername,
       );
 
       await channel.send(
-        `Family tree updated! Added ${childUsername} to ${parentUsername}`
+        `Family tree updated! Added ${childUsername} to ${parentUsername}`,
       );
       await message.delete();
     } catch (error) {

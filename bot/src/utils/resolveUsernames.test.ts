@@ -12,22 +12,17 @@ function createMockGuildMember({
   globalName?: string;
   username: string;
 }): GuildMember {
-  const member = {
+  return {
     nickname,
     user: {
       globalName,
       username,
-    } as User,
-  } as unknown as GuildMember;
+    } as unknown as User,
 
-  // Mimic displayName getter method
-  Object.defineProperty(member, "displayName", {
-    get() {
+    get displayName() {
       return nickname ?? globalName ?? username;
     },
-  });
-
-  return member;
+  } as unknown as GuildMember;
 }
 
 describe("resolveUsernames", () => {

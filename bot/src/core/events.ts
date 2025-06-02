@@ -2,11 +2,12 @@ import { Client } from "discord.js";
 import { setupAddListeners } from "../listeners/addListeners.js";
 import { handleHelpCommand } from "../commands/help.js";
 import { ServiceContainer } from "../services/index.js";
+import { DiscordChannel } from "../types/discord.js";
 
 export function setupEvents(
   discordClient: Client,
   services: ServiceContainer,
-  channel: string,
+  channel: DiscordChannel,
 ) {
   setupAddListeners(discordClient, services, channel);
 

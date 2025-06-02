@@ -2,6 +2,15 @@ import { GuildMember, PartialGuildMember } from "discord.js";
 import { ServiceContainer } from "../services/index.js";
 import { getDisplayName } from "../utils/resolveUsernames.js";
 
+/**
+ * Factory that creates a 'guildMemberUpdate' event listener
+ *
+ * The returned callback updates user entries in the DB to reflect any display name changes in the Discord server
+ *
+ * @param services - A ServiceContainer that provides the callback with access to 'databaseService'
+ *
+ * @returns An async callback to handle the 'onGuildMemberUpdate' event
+ */
 export function createOnGuildMemberUpdate(services: ServiceContainer) {
   return async function onGuildMemberUpdate(
     oldMember: GuildMember | PartialGuildMember,

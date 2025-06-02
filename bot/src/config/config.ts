@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { ConfigError } from "../errors/customErrors.js";
+import { createDiscordChannel } from "../types/discord.js";
 
 dotenv.config();
 
@@ -17,7 +18,7 @@ export function getConfig(env: Env) {
   return {
     discordToken: getEnv(env, "DISCORD_TOKEN"),
     clientId: getEnv(env, "CLIENT_ID"),
-    targetChannel: getEnv(env, "TARGET_CHANNEL"),
+    targetChannel: createDiscordChannel(getEnv(env, "TARGET_CHANNEL")),
     guildId: getEnv(env, "GUILD_ID"),
   };
 }
