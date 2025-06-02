@@ -23,7 +23,7 @@ function makeMember(
     user: { id },
     partial,
     displayName: name,
-  } as unknown as GuildMember; // cast keeps the compiler quiet for the test
+  } as unknown as GuildMember;
 }
 
 describe("onGuildMemberUpdate", () => {
@@ -65,7 +65,7 @@ describe("onGuildMemberUpdate", () => {
     );
   });
 
-  test("onGuildMemberUpdate should return early if name is unchanged", async () => {
+  test("onGuildMemberUpdate should skip update if name is unchanged", async () => {
     const onGuildMemberUpdate = createOnGuildMemberUpdate(mockServices);
 
     // mock members with unchanged name

@@ -5,20 +5,20 @@ export async function resolveUsernames(
   childId: string,
   parentId: string,
 ): Promise<{ childUsername: string; parentUsername: string } | null> {
-  const childUser = await fetchUser(message, childId);
-  const parentUser = await fetchUser(message, parentId);
+  const childUser = await fetchGuildMember(message, childId);
+  const parentUser = await fetchGuildMember(message, parentId);
 
   if (childUser === null || parentUser === null) {
     return null;
   }
 
-  const childUsername = assignNickname(childUser);
-  const parentUsername = assignNickname(parentUser);
+  const childUsername = getDisplayName(childUser);
+  const parentUsername = getDisplayName(parentUser);
 
   return { childUsername, parentUsername };
 }
 
-async function fetchUser(message: Message, userId: string) {
+async function fetchGuildMember(message: Message, userId: string) {
   // verify message isn't a private message
   const guild = message.guild;
   if (!guild) {
@@ -34,7 +34,14 @@ async function fetchUser(message: Message, userId: string) {
 }
 
 // Returns most human name assigned to GuildMember
-export function assignNickname(member: GuildMember): string {
+/**
+ * getter to retrieve a GuildMember display name, where displayName resolves in the order:
+ * nickname -> globalName -> username
+ *
+ * @param  {GuildMember} member
+ * @returns {string} displayName
+ */
+export function getDisplayName(member: GuildMember): string {
   // displayName is equivalent to: member.nickname ?? member.user.globalName ?? member.user.username;
   return member.displayName;
 }
