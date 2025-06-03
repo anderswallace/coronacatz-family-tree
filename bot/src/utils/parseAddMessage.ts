@@ -1,8 +1,10 @@
 /**
- * Utility to parse Discord IDs from message containing username mentions
+ * Utility to parse Discord User IDs from message containing username mentions
+ *
+ * Returns null if message is malformed or doesn't contain two user IDs
  *
  * @param content - The Discord message
- * @returns User IDs of Child and Parent users mentioned in the message
+ * @returns User IDs of Child and Parent users
  */
 export function parseAddMessage(
   content: string,

@@ -1,7 +1,7 @@
 import { Message } from "discord.js";
 
 /**
- * Resolves the display names from two User IDs and Discord message
+ * Resolves the display names of two User IDs from Discord message
  *
  * If message is a DM (Direct Message), or the users are not found in the server
  * it returns null
