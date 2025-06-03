@@ -12,8 +12,8 @@ export async function resolveUsernames(
     return null;
   }
 
-  const childUsername = getDisplayName(childUser);
-  const parentUsername = getDisplayName(parentUser);
+  const childUsername = childUser.displayName;
+  const parentUsername = parentUser.displayName;
 
   return { childUsername, parentUsername };
 }
@@ -31,16 +31,4 @@ async function fetchGuildMember(message: Message, userId: string) {
     return null;
   }
   return discordUser;
-}
-
-/**
- * getter to retrieve a GuildMember display name, where displayName resolves in the order:
- * nickname -> globalName -> username
- *
- * @param member - a GuildMember
- * @returns displayName - name that appears next to a user's avatar
- */
-export function getDisplayName(member: GuildMember): string {
-  // displayName is equivalent to: member.nickname ?? member.user.globalName ?? member.user.username;
-  return member.displayName;
 }

@@ -1,6 +1,5 @@
 import { GuildMember, PartialGuildMember } from "discord.js";
 import { ServiceContainer } from "../services/index.js";
-import { getDisplayName } from "../utils/resolveUsernames.js";
 import { UserNotFoundError } from "../errors/customErrors.js";
 
 /**
@@ -17,7 +16,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
     newMember: GuildMember,
   ) {
     // resolve display name of new user as they may not have nickname assigned
-    const newName = getDisplayName(newMember);
+    const newName = newMember.displayName;
 
     try {
       // attempt to query user in DB, if they do not exist this will throw an error
@@ -27,9 +26,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
 
       // Check if oldMember is a PartialGuildMember (only userId is available)
       // If so, get old name from DB node, otherwise resolve from display name
-      const oldName = oldMember.partial
-        ? oldUser.name
-        : getDisplayName(oldMember);
+      const oldName = oldMember.partial ? oldUser.name : oldMember.displayName;
 
       // if name is unchanged, return
       if (oldName === newName) {
