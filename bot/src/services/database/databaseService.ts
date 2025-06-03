@@ -105,7 +105,12 @@ export class DatabaseService implements IDatabaseService {
       });
   }
 
-  // Upload a batch of edges all at once, utilizing transaction client for atomicity
+  /**
+   * Method to upload a batch of edges at once, utilizing transaction client for atomicity
+   *
+   * @param edges - Pre-constructed edges to be uploaded
+   * @returns Number of nodes inserted successfully into the DB
+   */
   public async uploadNodes(
     edges: { childId: string; parentId: string; name: string }[],
   ): Promise<number> {
