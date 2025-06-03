@@ -31,7 +31,17 @@ export class DatabaseService implements IDatabaseService {
     return node;
   }
 
-  // private helper upload function for transactions
+  /**
+   * Private method to create and upload new Node to DB using {@link childId} and {@link name}
+   *
+   * The new Node inherits group and color from the parent node, and is uploaded in a transaction
+   * under {@link parentId} Node
+   *
+   * @param tx
+   * @param childId
+   * @param parentId
+   * @param name
+   */
   private async _uploadNode(
     tx: Prisma.TransactionClient,
     childId: string,
@@ -62,7 +72,15 @@ export class DatabaseService implements IDatabaseService {
     return this._fetchNodeById(this.prismaClient, userId);
   }
 
-  // Upload userId to database under parentId, where userId and name belong to user to be uploaded
+  /**
+   * Method to create and upload a new node from {@link userId} and {@link name} to DB
+   *
+   * New node is inserted into the family tree hierarchy under {@link parentId}
+   *
+   * @param userId
+   * @param parentId
+   * @param name
+   */
   public async uploadNode(
     userId: string,
     parentId: string,
