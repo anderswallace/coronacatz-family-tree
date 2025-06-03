@@ -4,7 +4,7 @@ import { seedDb } from "./seed.js";
 import type { ServiceContainer } from "../services/index.js";
 
 vi.mock("../utils/resolveUsernames.js", () => ({
-  assignNickname: (m: any) => m.nickname, // passthrough
+  getDisplayName: (m: any) => m.nickname, // passthrough
 }));
 
 vi.mock("../data/seedEdges.json", () => ({
@@ -73,10 +73,10 @@ describe("seedDb", () => {
     await seedDb(incompleteGuild, services);
 
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[seed] Skipping Parent => Child")
+      expect.stringContaining("[seed] Skipping Parent => Child"),
     );
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("users skipped")
+      expect.stringContaining("users skipped"),
     );
     expect(uploadNodesSpy).toHaveBeenCalledWith([]); // nothing inserted
   });
@@ -98,7 +98,7 @@ describe("seedDb", () => {
     // because Child is a bot, nickname-lookup fails - edge skipped
     expect(uploadNodesSpy).toHaveBeenCalledWith([]);
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[seed] Skipping Parent => Child")
+      expect.stringContaining("[seed] Skipping Parent => Child"),
     );
   });
 });
