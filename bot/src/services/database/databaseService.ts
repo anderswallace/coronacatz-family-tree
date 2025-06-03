@@ -138,6 +138,12 @@ export class DatabaseService implements IDatabaseService {
     return inserted;
   }
 
+  /**
+   * Method to update the name of a Node with ID {@link userId} to {@link newName} in the DB
+   *
+   * @param userId
+   * @param newName
+   */
   public async updateNode(userId: string, newName: string): Promise<void> {
     try {
       const user = await this.fetchNodeById(userId);
