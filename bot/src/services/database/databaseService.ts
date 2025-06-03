@@ -9,6 +9,13 @@ import { Prisma, PrismaClient, Node } from "@prisma/client";
 export class DatabaseService implements IDatabaseService {
   constructor(private prismaClient: PrismaClient) {}
 
+  /**
+   * Private method to fetch a Node from the Supabase DB
+   *
+   * @param client
+   * @param userId
+   * @returns Node from DB with matching {@link userId}
+   */
   private async _fetchNodeById(
     client: Prisma.TransactionClient,
     userId: string,
@@ -45,6 +52,12 @@ export class DatabaseService implements IDatabaseService {
     });
   }
 
+  /**
+   * Method to retrieve Node from DB by a Discord User ID
+   *
+   * @param userId
+   * @returns Node with matching {@link userId}
+   */
   public async fetchNodeById(userId: string): Promise<Node> {
     return this._fetchNodeById(this.prismaClient, userId);
   }
