@@ -180,7 +180,14 @@ export class DatabaseService implements IDatabaseService {
     }
   }
 
-  // remove selected userId re-parent all its children to its parent node
+  /**
+   * Method to remove Node with ID {@link userId} from DB
+   *
+   * If Node has children in the DB, the children are re-parented to the Node's parent
+   * in a transaction
+   *
+   * @param userId
+   */
   public async removeNode(userId: string): Promise<void> {
     try {
       const user = await this.fetchNodeById(userId);
