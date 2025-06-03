@@ -5,6 +5,13 @@ import { ServiceContainer } from "../services/index.js";
 import { createOnGuildMemberUpdate } from "../events/onGuildMemberUpdate.js";
 import { DiscordChannel } from "../types/discord.js";
 
+/**
+ * Sets up event listeners for emitted Discord events
+ *
+ * @param discordClient
+ * @param services - Container for services utilized by event handlers
+ * @param channelName - The target channel for onMessageCreate event
+ */
 export function setupAddListeners(
   discordClient: Client,
   services: ServiceContainer,
