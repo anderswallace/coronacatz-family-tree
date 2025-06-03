@@ -11,7 +11,7 @@ export class DatabaseService implements IDatabaseService {
 
   private async _fetchNodeById(
     client: Prisma.TransactionClient,
-    userId: string
+    userId: string,
   ) {
     const node = await client.node.findUnique({
       where: { userId },
@@ -29,7 +29,7 @@ export class DatabaseService implements IDatabaseService {
     tx: Prisma.TransactionClient,
     childId: string,
     parentId: string,
-    name: string
+    name: string,
   ) {
     const parent = await this._fetchNodeById(tx, parentId);
 
@@ -53,7 +53,7 @@ export class DatabaseService implements IDatabaseService {
   public async uploadNode(
     userId: string,
     parentId: string,
-    name: string
+    name: string,
   ): Promise<void> {
     // create transaction client for atomicity
     await this.prismaClient
@@ -76,7 +76,7 @@ export class DatabaseService implements IDatabaseService {
 
   // Upload a batch of edges all at once, utilizing transaction client for atomicity
   public async uploadNodes(
-    edges: { childId: string; parentId: string; name: string }[]
+    edges: { childId: string; parentId: string; name: string }[],
   ): Promise<number> {
     let inserted = 0;
 
@@ -102,6 +102,42 @@ export class DatabaseService implements IDatabaseService {
     return inserted;
   }
 
+  public async updateNode(userId: string, newName: string): Promise<void> {
+    try {
+      const user = await this.fetchNodeById(userId);
+      const oldName = user.name;
+
+      const operations = [];
+
+      // update name of user to newly assigned name
+      operations.push(
+        this.prismaClient.node.update({
+          where: { userId },
+          data: { name: newName },
+        }),
+      );
+
+      // check if user is a Founder (group and name match), update group name to new name if so
+      if (oldName === user.group) {
+        operations.push(
+          this.prismaClient.node.updateMany({
+            where: { group: user.group },
+            data: { group: newName },
+          }),
+        );
+      }
+
+      // push all operations as transaction
+      await this.prismaClient.$transaction(operations);
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new PrismaOperationError(err.message);
+      } else {
+        throw new PrismaOperationError("Unknown Error");
+      }
+    }
+  }
+
   // remove selected userId re-parent all its children to its parent node
   public async removeNode(userId: string): Promise<void> {
     try {
@@ -115,7 +151,7 @@ export class DatabaseService implements IDatabaseService {
         this.prismaClient.node.updateMany({
           where: { parentId: userId },
           data: { parentId: parent.userId },
-        })
+        }),
       );
 
       // check if user is the root of the tree (a founder), if so update old group to that of the new parent
@@ -124,7 +160,7 @@ export class DatabaseService implements IDatabaseService {
           this.prismaClient.node.updateMany({
             where: { group: user.group },
             data: { group: parent.group, color: parent.color },
-          })
+          }),
         );
       }
 
@@ -132,7 +168,7 @@ export class DatabaseService implements IDatabaseService {
       operations.push(
         this.prismaClient.node.delete({
           where: { userId },
-        })
+        }),
       );
 
       // execute all updates atomically

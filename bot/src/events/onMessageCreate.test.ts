@@ -4,14 +4,11 @@ import * as parser from "../utils/parseAddMessage.js";
 import * as resolver from "../utils/resolveUsernames.js";
 import { createOnMessageCreate } from "./onMessageCreate.js";
 import { ServiceContainer } from "../services/index.js";
+import { createDiscordChannel, DiscordChannel } from "../types/discord.js";
 
 vi.mock("../utils/resolveUsernames");
 
-vi.mock("../services/databaseService", () => ({
-  uploadNode: vi.fn(),
-}));
-
-const targetChannel = "family-tree";
+const targetChannel: DiscordChannel = createDiscordChannel("family-tree");
 
 const mockServices = {
   databaseService: {
@@ -151,7 +148,7 @@ describe("onMessageCreate", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(sendMock).toHaveBeenCalledWith(
-      "One or more users couldn't be found. Please try again"
+      "One or more users couldn't be found. Please try again",
     );
   });
 
@@ -167,7 +164,7 @@ describe("onMessageCreate", () => {
     const channel = Object.create(TextChannel.prototype) as TextChannel;
 
     (mockServices.databaseService.uploadNode as Mock).mockResolvedValue(
-      undefined
+      undefined,
     );
 
     Object.defineProperty(mockMessage, "author", {
@@ -203,14 +200,14 @@ describe("onMessageCreate", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(sendMock).toHaveBeenCalledWith(
-      `Family tree updated! Added ${mockChildNickname} to ${mockParentNickname}`
+      `Family tree updated! Added ${mockChildNickname} to ${mockParentNickname}`,
     );
     expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 
   test("Should call channel.send with handled error when API fails", async () => {
     vi.spyOn(resolver, "resolveUsernames").mockRejectedValueOnce(
-      new Error("Unknown User")
+      new Error("Unknown User"),
     );
     const mockMessage = Object.create(Message.prototype) as Message<true>;
     const channel = Object.create(TextChannel.prototype) as TextChannel;

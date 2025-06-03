@@ -3,22 +3,22 @@ import { GuildMember, Message } from "discord.js";
 export async function resolveUsernames(
   message: Message,
   childId: string,
-  parentId: string
+  parentId: string,
 ): Promise<{ childUsername: string; parentUsername: string } | null> {
-  const childUser = await fetchUser(message, childId);
-  const parentUser = await fetchUser(message, parentId);
+  const childUser = await fetchGuildMember(message, childId);
+  const parentUser = await fetchGuildMember(message, parentId);
 
   if (childUser === null || parentUser === null) {
     return null;
   }
 
-  const childUsername = assignNickname(childUser);
-  const parentUsername = assignNickname(parentUser);
+  const childUsername = getDisplayName(childUser);
+  const parentUsername = getDisplayName(parentUser);
 
   return { childUsername, parentUsername };
 }
 
-async function fetchUser(message: Message, userId: string) {
+async function fetchGuildMember(message: Message, userId: string) {
   // verify message isn't a private message
   const guild = message.guild;
   if (!guild) {
@@ -33,6 +33,14 @@ async function fetchUser(message: Message, userId: string) {
   return discordUser;
 }
 
-export function assignNickname(user: GuildMember): string {
-  return user.nickname ?? user.user.globalName ?? user.user.username;
+/**
+ * getter to retrieve a GuildMember display name, where displayName resolves in the order:
+ * nickname -> globalName -> username
+ *
+ * @param member - a GuildMember
+ * @returns displayName - name that appears next to a user's avatar
+ */
+export function getDisplayName(member: GuildMember): string {
+  // displayName is equivalent to: member.nickname ?? member.user.globalName ?? member.user.username;
+  return member.displayName;
 }

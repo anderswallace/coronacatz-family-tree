@@ -17,7 +17,11 @@ function createMockGuildMember({
     user: {
       globalName,
       username,
-    } as User,
+    } as unknown as User,
+
+    get displayName() {
+      return nickname ?? globalName ?? username;
+    },
   } as unknown as GuildMember;
 }
 
@@ -33,13 +37,13 @@ describe("resolveUsernames", () => {
         createMockGuildMember({
           nickname: "child-nickname",
           username: "child-username",
-        })
+        }),
       )
       .mockResolvedValueOnce(
         createMockGuildMember({
           nickname: "parent-nickname",
           username: "parent-username",
-        })
+        }),
       );
 
     const mockMessage = {
@@ -75,12 +79,12 @@ describe("resolveUsernames", () => {
       .mockReturnValueOnce(
         createMockGuildMember({
           username: "child-username",
-        })
+        }),
       )
       .mockResolvedValueOnce(
         createMockGuildMember({
           username: "parent-username",
-        })
+        }),
       );
 
     const mockMessage = {
@@ -108,12 +112,12 @@ describe("resolveUsernames", () => {
       .mockResolvedValueOnce(
         createMockGuildMember({
           username: "parent-username",
-        })
+        }),
       )
       .mockResolvedValueOnce(
         createMockGuildMember({
           username: "child-username",
-        })
+        }),
       )
       .mockReturnValueOnce(undefined);
 
@@ -131,7 +135,7 @@ describe("resolveUsernames", () => {
     const secondResult = await resolveUsernames(
       mockMessage,
       "child-id",
-      "parent-id"
+      "parent-id",
     );
     expect(secondResult).toBeNull();
   });
