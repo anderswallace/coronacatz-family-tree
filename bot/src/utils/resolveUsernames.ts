@@ -33,13 +33,12 @@ async function fetchGuildMember(message: Message, userId: string) {
   return discordUser;
 }
 
-// Returns most human name assigned to GuildMember
 /**
  * getter to retrieve a GuildMember display name, where displayName resolves in the order:
  * nickname -> globalName -> username
  *
  * @param member - a GuildMember
- * @returns {string} displayName - name that appears next to a user's avatar
+ * @returns displayName - name that appears next to a user's avatar
  */
 export function getDisplayName(member: GuildMember): string {
   // displayName is equivalent to: member.nickname ?? member.user.globalName ?? member.user.username;

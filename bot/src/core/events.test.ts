@@ -4,6 +4,7 @@ import { Client, Events, Interaction } from "discord.js";
 import { setupAddListeners } from "../listeners/addListeners.js";
 import { handleHelpCommand } from "../commands/help.js";
 import { ServiceContainer } from "../services/index.js";
+import { createDiscordChannel } from "../types/discord.js";
 
 vi.mock("../listeners/addListeners", () => ({
   setupAddListeners: vi.fn(),
@@ -17,7 +18,7 @@ vi.mock("../commands/seed", () => ({
   handleSeedCommand: vi.fn(),
 }));
 
-const targetChannel = "family-tree";
+const targetChannel = createDiscordChannel("family-tree");
 const mockServicesContainer = {} as unknown as ServiceContainer;
 
 describe("setupEvents", () => {
@@ -33,7 +34,7 @@ describe("setupEvents", () => {
     expect(setupAddListeners).toHaveBeenCalledWith(
       client,
       mockServicesContainer,
-      targetChannel
+      targetChannel,
     );
   });
 

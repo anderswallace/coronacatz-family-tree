@@ -1,5 +1,5 @@
 import { Guild, GuildMember } from "discord.js";
-import { assignNickname } from "../utils/resolveUsernames.js";
+import { getDisplayName } from "../utils/resolveUsernames.js";
 import { ServiceContainer } from "../services/index.js";
 import seedEdges from "../data/seedEdges.json" with { type: "json" };
 import { Edge, ConstructedEdge } from "../types/graph.js";
@@ -12,7 +12,7 @@ export async function seedDb(guild: Guild, services: ServiceContainer) {
   // Filter out bot users to get human GuildMembers of the server
   rawMembers
     .filter((member) => !member.user.bot)
-    .forEach((member) => members.set(assignNickname(member), member));
+    .forEach((member) => members.set(getDisplayName(member), member));
 
   // Upload edges from seedEdges and return number of added members
   const insertedMembers = await uploadSeedEdges(services, members);

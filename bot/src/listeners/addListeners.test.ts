@@ -10,6 +10,7 @@ import { setupAddListeners } from "./addListeners.js";
 import { createOnMessageCreate } from "../events/onMessageCreate.js";
 import { Database } from "firebase/database";
 import { ServiceContainer } from "../services/index.js";
+import { createDiscordChannel } from "../types/discord.js";
 
 const mockCreateMessage = vi.fn();
 
@@ -19,7 +20,7 @@ vi.mock("../events/onMessageCreate.js", () => ({
   createOnMessageCreate: vi.fn(() => mockCreateMessage),
 }));
 
-const targetChannel = "family-tree";
+const targetChannel = createDiscordChannel("family-tree");
 
 describe("addListeners", () => {
   beforeEach(() => {
