@@ -3,6 +3,12 @@ import { ServiceContainer } from "../services/index.js";
 import seedEdges from "../data/seedEdges.json" with { type: "json" };
 import { Edge, ConstructedEdge } from "../types/graph.js";
 
+/**
+ * Seeds Supabase DB with predefined relationships from seedEdges.json
+ *
+ * @param guild
+ * @param services
+ */
 export async function seedDb(guild: Guild, services: ServiceContainer) {
   // Return all members of the server, create map to lookup user by nickname
   const rawMembers = await guild.members.fetch();
@@ -21,8 +27,13 @@ export async function seedDb(guild: Guild, services: ServiceContainer) {
   );
 }
 
-// Helper function to extract user information from server list to seed the DB from seedEdges
-// Returns the number of added members
+/**
+ * Helper function to match seed data users to the server GuildMembers and upload valid edges to the DB
+ *
+ * @param services
+ * @param members - all GuildMembers of the server
+ * @returns Number of edges added to the DB
+ */
 async function uploadSeedEdges(
   services: ServiceContainer,
   members: Map<string, GuildMember>
