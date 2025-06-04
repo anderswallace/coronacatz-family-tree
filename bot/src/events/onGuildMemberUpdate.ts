@@ -3,12 +3,12 @@ import { ServiceContainer } from "../services/index.js";
 import { UserNotFoundError } from "../errors/customErrors.js";
 
 /**
- * Factory that creates a 'guildMemberUpdate' event listener
+ * Factory that creates an 'onGuildMemberUpdate' event listener
  *
  * The returned callback updates user entries in the DB to reflect any display name changes in the Discord server
  *
  * @param services
- * @returns An async callback to handle the 'onGuildMemberUpdate' event
+ * @returns An async callback to handle the 'guildMemberUpdate' event
  */
 export function createOnGuildMemberUpdate(services: ServiceContainer) {
   return async function onGuildMemberUpdate(

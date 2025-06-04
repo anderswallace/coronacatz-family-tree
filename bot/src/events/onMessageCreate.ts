@@ -12,7 +12,7 @@ import { DiscordChannel } from "../types/discord.js";
  *
  * @param services
  * @param targetChannelName - The specified channel the bot will parse new messages
- * @returns An async callback to handle the 'onMessageCreate' event
+ * @returns An async callback to handle the 'messageCreate' event
  */
 export function createOnMessageCreate(
   services: ServiceContainer,
