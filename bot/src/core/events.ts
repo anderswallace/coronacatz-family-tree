@@ -7,7 +7,7 @@ import { DiscordChannel } from "../types/discord.js";
 /**
  * Sets up event listeners and slash command handlers for bot functionality
  *
- * @param discordClient
+ * @param discordClient - Client for interacting with Discord API
  * @param services - Container for services utilized by the bot
  * @param channel - The target channel for event listeners
  */

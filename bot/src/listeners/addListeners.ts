@@ -8,7 +8,7 @@ import { DiscordChannel } from "../types/discord.js";
 /**
  * Sets up event listeners for emitted Discord events
  *
- * @param discordClient
+ * @param discordClient - Client for interacting with Discord API
  * @param services - Container for services utilized by event handlers
  * @param channelName - The target channel for onMessageCreate event
  */

@@ -6,10 +6,10 @@ import { Message } from "discord.js";
  * If message is a DM (Direct Message), or the users are not found in the server
  * it returns null
  *
- * @param message
- * @param childId
- * @param parentId
- * @returns The display name of the child and parent User IDs
+ * @param message - Message emitted by Discord
+ * @param childId - Discord User ID of child user
+ * @param parentId - Discord User ID of parent user
+ * @returns The display names of the child and parent User IDs
  */
 export async function resolveUsernames(
   message: Message,
@@ -33,8 +33,11 @@ export async function resolveUsernames(
  * Utility to extract a GuildMember (Server specific user reference) from a Discord server
  * message using a User ID (Global user reference)
  *
- * @param message
- * @param userId
+ * If message is a DM (Direct Message), or the user is not found in the server
+ * it returns null
+ *
+ * @param message - Message emitted by discord
+ * @param userId - Discord User ID of GuildMember to fetch
  * @returns GuildMember from server with matching {@link userId}
  */
 async function fetchGuildMember(message: Message, userId: string) {

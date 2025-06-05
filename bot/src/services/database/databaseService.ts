@@ -12,8 +12,8 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Private method to fetch a Node from the Supabase DB
    *
-   * @param client
-   * @param userId
+   * @param client - Prisma Client to interact with Supabase DB
+   * @param userId - The Discord User ID of the node to fetch
    * @returns Node from DB with matching {@link userId}
    */
   private async _fetchNodeById(
@@ -37,10 +37,10 @@ export class DatabaseService implements IDatabaseService {
    * The new Node inherits group and color from the parent node, and is uploaded in a transaction
    * under {@link parentId} Node
    *
-   * @param tx
-   * @param childId
-   * @param parentId
-   * @param name
+   * @param tx - Prisma TransactionClient to perform DB transaction operation
+   * @param childId - User ID of the child node to upload
+   * @param parentId - User ID of the parent node of child
+   * @param name - Name of the child node
    */
   private async _uploadNode(
     tx: Prisma.TransactionClient,
@@ -65,7 +65,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Method to retrieve Node from DB by a Discord User ID
    *
-   * @param userId
+   * @param userId - Discord User ID of the node to fetch
    * @returns Node with matching {@link userId}
    */
   public async fetchNodeById(userId: string): Promise<Node> {
@@ -77,9 +77,9 @@ export class DatabaseService implements IDatabaseService {
    *
    * New node is inserted into the family tree hierarchy under {@link parentId}
    *
-   * @param userId
-   * @param parentId
-   * @param name
+   * @param userId - Discord User ID of node to create and upload
+   * @param parentId - User ID of the parent node the child is a descendant of in the family tree
+   * @param name - Name of the user to upload
    */
   public async uploadNode(
     userId: string,
@@ -108,7 +108,7 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Method to upload a batch of edges at once, utilizing transaction client for atomicity
    *
-   * @param edges - Pre-constructed edges to be uploaded
+   * @param edges - Pre-constructed edges to upload
    * @returns Number of nodes inserted successfully into the DB
    */
   public async uploadNodes(
@@ -141,8 +141,8 @@ export class DatabaseService implements IDatabaseService {
   /**
    * Method to update the name of a Node with ID {@link userId} to {@link newName} in the DB
    *
-   * @param userId
-   * @param newName
+   * @param userId - Discord User ID of node to upload
+   * @param newName - New name to update to in DB
    */
   public async updateNode(userId: string, newName: string): Promise<void> {
     try {
@@ -186,7 +186,7 @@ export class DatabaseService implements IDatabaseService {
    * If Node has children in the DB, the children are re-parented to the Node's parent
    * in a transaction
    *
-   * @param userId
+   * @param userId - Discord User ID of node to remove
    */
   public async removeNode(userId: string): Promise<void> {
     try {

@@ -6,8 +6,8 @@ import { Edge, ConstructedEdge } from "../types/graph.js";
 /**
  * Seeds Supabase DB with predefined relationships from seedEdges.json
  *
- * @param guild
- * @param services
+ * @param guild - A server on Discord to seed
+ * @param services - Container for services utilized by the bot
  */
 export async function seedDb(guild: Guild, services: ServiceContainer) {
   // Return all members of the server, create map to lookup user by nickname
@@ -30,8 +30,8 @@ export async function seedDb(guild: Guild, services: ServiceContainer) {
 /**
  * Helper function to match seed data users to the server GuildMembers and upload valid edges to the DB
  *
- * @param services
- * @param members - all GuildMembers of the server
+ * @param services - Container for services utilized by the bot
+ * @param members - All GuildMembers of the server
  * @returns Number of edges added to the DB
  */
 async function uploadSeedEdges(

@@ -14,7 +14,7 @@ export const helpCommand = new SlashCommandBuilder()
  * Creates an ephemeral reply in the channel with instructions on
  * how to use the bot
  *
- * @param interaction
+ * @param interaction - A command interaction
  */
 export async function handleHelpCommand(
   interaction: ChatInputCommandInteraction,

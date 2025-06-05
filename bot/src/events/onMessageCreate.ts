@@ -10,8 +10,8 @@ import { DiscordChannel } from "../types/discord.js";
  * The returned callback parses new messages in the target channel to upload new Discord users
  * to the family tree
  *
- * @param services
- * @param targetChannelName - The specified channel the bot will parse new messages
+ * @param services - Container for services utilized by the bot
+ * @param targetChannelName - The specified channel name the bot parses new messages
  * @returns An async callback to handle the 'messageCreate' event
  */
 export function createOnMessageCreate(

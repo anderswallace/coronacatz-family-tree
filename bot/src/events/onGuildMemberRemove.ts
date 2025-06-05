@@ -7,7 +7,7 @@ import { ServiceContainer } from "../services/index.js";
  * The returned callback removes the GuildMember who is no longer in the server from
  * the DB
  *
- * @param services
+ * @param services - Container for services utilized by the bot
  * @returns An async callback to handle the 'guildMemberRemove' event
  */
 export function createOnGuildMemberRemove(services: ServiceContainer) {

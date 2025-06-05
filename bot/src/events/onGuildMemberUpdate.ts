@@ -7,7 +7,7 @@ import { UserNotFoundError } from "../errors/customErrors.js";
  *
  * The returned callback updates user entries in the DB to reflect any display name changes in the Discord server
  *
- * @param services
+ * @param services - Container for services utilized by the bot
  * @returns An async callback to handle the 'guildMemberUpdate' event
  */
 export function createOnGuildMemberUpdate(services: ServiceContainer) {
