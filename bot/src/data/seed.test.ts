@@ -3,10 +3,6 @@ import type { GuildMember, Guild } from "discord.js";
 import { seedDb } from "./seed.js";
 import type { ServiceContainer } from "../services/index.js";
 
-vi.mock("../utils/resolveUsernames.js", () => ({
-  getDisplayName: (m: any) => m.nickname, // passthrough
-}));
-
 vi.mock("../data/seedEdges.json", () => ({
   default: [{ parent: "Parent", child: "Child" }],
 }));
@@ -15,6 +11,7 @@ function fakeMember(nickname: string, id: string, bot = false): GuildMember {
   return {
     nickname,
     user: { id, bot },
+    displayName: nickname,
   } as unknown as GuildMember;
 }
 

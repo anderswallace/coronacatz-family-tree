@@ -1,5 +1,16 @@
-import { GuildMember, Message } from "discord.js";
+import { Message } from "discord.js";
 
+/**
+ * Resolves the display names of two User IDs from Discord message
+ *
+ * If message is a DM (Direct Message), or the users are not found in the server
+ * it returns null
+ *
+ * @param message - Message emitted by Discord
+ * @param childId - Discord User ID of child user
+ * @param parentId - Discord User ID of parent user
+ * @returns The display names of the child and parent User IDs
+ */
 export async function resolveUsernames(
   message: Message,
   childId: string,
@@ -12,12 +23,23 @@ export async function resolveUsernames(
     return null;
   }
 
-  const childUsername = getDisplayName(childUser);
-  const parentUsername = getDisplayName(parentUser);
+  const childUsername = childUser.displayName;
+  const parentUsername = parentUser.displayName;
 
   return { childUsername, parentUsername };
 }
 
+/**
+ * Utility to extract a GuildMember (Server specific user reference) from a Discord server
+ * message using a User ID (Global user reference)
+ *
+ * If message is a DM (Direct Message), or the user is not found in the server
+ * it returns null
+ *
+ * @param message - Message emitted by discord
+ * @param userId - Discord User ID of GuildMember to fetch
+ * @returns GuildMember from server with matching {@link userId}
+ */
 async function fetchGuildMember(message: Message, userId: string) {
   // verify message isn't a private message
   const guild = message.guild;
@@ -31,16 +53,4 @@ async function fetchGuildMember(message: Message, userId: string) {
     return null;
   }
   return discordUser;
-}
-
-/**
- * getter to retrieve a GuildMember display name, where displayName resolves in the order:
- * nickname -> globalName -> username
- *
- * @param member - a GuildMember
- * @returns displayName - name that appears next to a user's avatar
- */
-export function getDisplayName(member: GuildMember): string {
-  // displayName is equivalent to: member.nickname ?? member.user.globalName ?? member.user.username;
-  return member.displayName;
 }

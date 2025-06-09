@@ -1,16 +1,14 @@
 import { GuildMember, PartialGuildMember } from "discord.js";
 import { ServiceContainer } from "../services/index.js";
-import { getDisplayName } from "../utils/resolveUsernames.js";
 import { UserNotFoundError } from "../errors/customErrors.js";
 
 /**
- * Factory that creates a 'guildMemberUpdate' event listener
+ * Factory that creates an 'onGuildMemberUpdate' event listener
  *
  * The returned callback updates user entries in the DB to reflect any display name changes in the Discord server
  *
- * @param services - A ServiceContainer that provides the callback with access to 'databaseService'
- *
- * @returns An async callback to handle the 'onGuildMemberUpdate' event
+ * @param services - Container for services utilized by the bot
+ * @returns An async callback to handle the 'guildMemberUpdate' event
  */
 export function createOnGuildMemberUpdate(services: ServiceContainer) {
   return async function onGuildMemberUpdate(
@@ -18,7 +16,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
     newMember: GuildMember,
   ) {
     // resolve display name of new user as they may not have nickname assigned
-    const newName = getDisplayName(newMember);
+    const newName = newMember.displayName;
 
     try {
       // attempt to query user in DB, if they do not exist this will throw an error
@@ -28,9 +26,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
 
       // Check if oldMember is a PartialGuildMember (only userId is available)
       // If so, get old name from DB node, otherwise resolve from display name
-      const oldName = oldMember.partial
-        ? oldUser.name
-        : getDisplayName(oldMember);
+      const oldName = oldMember.partial ? oldUser.name : oldMember.displayName;
 
       // if name is unchanged, return
       if (oldName === newName) {

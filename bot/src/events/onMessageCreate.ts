@@ -4,6 +4,16 @@ import { resolveUsernames } from "../utils/resolveUsernames.js";
 import { ServiceContainer } from "../services/index.js";
 import { DiscordChannel } from "../types/discord.js";
 
+/**
+ * Factory that creates an 'onMessageCreate' event listener
+ *
+ * The returned callback parses new messages in the target channel to upload new Discord users
+ * to the family tree
+ *
+ * @param services - Container for services utilized by the bot
+ * @param targetChannelName - The specified channel name the bot parses new messages
+ * @returns An async callback to handle the 'messageCreate' event
+ */
 export function createOnMessageCreate(
   services: ServiceContainer,
   targetChannelName: DiscordChannel,
