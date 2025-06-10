@@ -5,6 +5,9 @@ import {
 } from "../../errors/customErrors.js";
 import { IDatabaseService } from "./IDatabaseService.js";
 import { Prisma, PrismaClient, Node } from "@prisma/client";
+import { logs, SeverityNumber } from "@opentelemetry/api-logs";
+
+const logger = logs.getLogger("db-service");
 
 export class DatabaseService implements IDatabaseService {
   constructor(private prismaClient: PrismaClient) {}
@@ -25,8 +28,21 @@ export class DatabaseService implements IDatabaseService {
     });
 
     if (!node) {
+      // Log warning of user not being found
+      logger.emit({
+        body: "User not found",
+        severityNumber: SeverityNumber.ERROR,
+        attributes: { userId },
+      });
       throw new UserNotFoundError(userId);
     }
+
+    // Log information about DB operation to OpenTel
+    logger.emit({
+      body: "Node fetched",
+      severityNumber: SeverityNumber.INFO,
+      attributes: { userId },
+    });
 
     return node;
   }
@@ -59,6 +75,13 @@ export class DatabaseService implements IDatabaseService {
         group: parent.group,
         color: parent.color,
       },
+    });
+
+    // Log information about node creation to OpenTel
+    logger.emit({
+      body: "Node created",
+      severityNumber: SeverityNumber.INFO,
+      attributes: { childId, parentId, name },
     });
   }
 
@@ -96,10 +119,30 @@ export class DatabaseService implements IDatabaseService {
           err instanceof Prisma.PrismaClientKnownRequestError &&
           err.code === "P2002"
         ) {
+          // Log information about existing user to OpenTel
+          logger.emit({
+            body: "User already exists",
+            severityNumber: SeverityNumber.WARN,
+            attributes: { userId, parentId, name },
+          });
+
           throw new UserAlreadyExistsError(name);
         } else if (err instanceof Error) {
+          // Log warning information for Prisma error to OpenTel
+          logger.emit({
+            body: "Prisma operation failed",
+            severityNumber: SeverityNumber.ERROR,
+            attributes: { userId, parentId, name, err: (err as Error).message },
+          });
+
           throw new PrismaOperationError(err.message);
         } else {
+          // Log error for unknown warning from Prisma transaction
+          logger.emit({
+            body: "Unknown Prisma Error",
+            severityNumber: SeverityNumber.ERROR4,
+            attributes: { userId, parentId, name, err: (err as Error).message },
+          });
           throw new PrismaOperationError("Unknown Prisma Error");
         }
       });
@@ -125,10 +168,32 @@ export class DatabaseService implements IDatabaseService {
         } catch (err) {
           // we can continue looping as this does not cause errors in overall data shape
           if (err instanceof UserAlreadyExistsError) {
+            // Log information about skipped user in seeding process
+            logger.emit({
+              body: "Skip already existing user",
+              severityNumber: SeverityNumber.WARN,
+              attributes: {
+                childId: edge.childId,
+                parentId: edge.parentId,
+                name: edge.name,
+              },
+            });
+
             continue;
 
             // any other error, we break out of operation and cancel entire batch
           } else {
+            // Log error for failed upload
+            logger.emit({
+              body: "Unknown Prisma Error",
+              severityNumber: SeverityNumber.ERROR2,
+              attributes: {
+                childId: edge.childId,
+                parentId: edge.parentId,
+                name: edge.name,
+                err: (err as Error).message,
+              },
+            });
             throw err;
           }
         }
@@ -159,8 +224,11 @@ export class DatabaseService implements IDatabaseService {
         }),
       );
 
-      // check if user is a Founder (group and name match), update group name to new name if so
-      if (oldName === user.group) {
+      // check if user is a Founder
+      const isFounder = oldName === user.group;
+
+      // update group name to new name if user is a Founder
+      if (isFounder) {
         operations.push(
           this.prismaClient.node.updateMany({
             where: { group: user.group },
@@ -171,10 +239,31 @@ export class DatabaseService implements IDatabaseService {
 
       // push all operations as transaction
       await this.prismaClient.$transaction(operations);
+
+      // Log information about node name change
+      logger.emit({
+        body: "Node name updated",
+        severityNumber: SeverityNumber.INFO,
+        attributes: { userId, oldName, newName, isFounder },
+      });
     } catch (err) {
       if (err instanceof Error) {
+        // Log information about failed update transaction
+        logger.emit({
+          body: "Prisma operation failed",
+          severityNumber: SeverityNumber.ERROR,
+          attributes: { userId, newName, err: (err as Error).message },
+        });
+
         throw new PrismaOperationError(err.message);
       } else {
+        // Log information about unknown error
+        logger.emit({
+          body: "Unknown Prisma error",
+          severityNumber: SeverityNumber.ERROR2,
+          attributes: { userId, newName, err: (err as Error).message },
+        });
+
         throw new PrismaOperationError("Unknown Error");
       }
     }
@@ -203,8 +292,11 @@ export class DatabaseService implements IDatabaseService {
         }),
       );
 
-      // check if user is the root of the tree (a founder), if so update old group to that of the new parent
-      if (user.group === user.name) {
+      // check if user is the root of the tree (a Founder)
+      const isFounder = user.group === user.name;
+
+      // update old group to that of the new parent if user is a Founder
+      if (isFounder) {
         operations.push(
           this.prismaClient.node.updateMany({
             where: { group: user.group },
@@ -222,10 +314,29 @@ export class DatabaseService implements IDatabaseService {
 
       // execute all updates atomically
       await this.prismaClient.$transaction(operations);
+
+      // Log information about removed node
+      logger.emit({
+        body: "Node removed",
+        severityNumber: SeverityNumber.INFO,
+        attributes: { userId, isFounder },
+      });
     } catch (err) {
       if (err instanceof Error) {
+        // Log Prisma error
+        logger.emit({
+          body: "Prisma operation error",
+          severityNumber: SeverityNumber.ERROR,
+          attributes: { userId, err: (err as Error).message },
+        });
         throw new PrismaOperationError(err.message);
       } else {
+        // Log unknown error
+        logger.emit({
+          body: "Unknown Prisma error",
+          severityNumber: SeverityNumber.ERROR2,
+          attributes: { userId, err: (err as Error).message },
+        });
         throw new PrismaOperationError("Unknown Prisma Error");
       }
     }
