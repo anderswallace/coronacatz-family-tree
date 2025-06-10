@@ -1,6 +1,9 @@
 services:
   # Devcontainer used by VSCode
   dev:
+    environment:
+      - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
+      - OTEL_LOGS_EXPORTER=otlp
     build:
       args:
         USERNAME: anders
@@ -8,7 +11,6 @@ services:
         USER_GID: 1000
       context: .
       dockerfile: ./dockerfile
-    container_name: anders-coronacatz-dev
     # Overrides default command so things don't shut down after the process ends.
     # This is suggested by the example template provided in the VSCode
     #   devcontainers GitHub repository here:
@@ -18,3 +20,16 @@ services:
     tty: true
     volumes:
       - ..:/workspace:rw
+    depends_on:
+      - otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    ports:
+      - "4317:4317" # OTLP/gRPC
+      - "4318:4318" # OTLP/HTTP
+      - "8888:8888" # Collector metrics
+    volumes:
+      - ./otel-config.yaml:/etc/otel/config.yaml
+    command:
+      - --config=/etc/otel/config.yaml
