@@ -43,8 +43,9 @@ services:
 
   tempo:
     image: grafana/tempo:2.6.0
-    command:
-      - "--config.file=/etc/tempo/local.yaml"
+    command: ["-config.file=/etc/tempo/local.yaml"]
+    volumes:
+      - ./tempo-local.yaml:/etc/tempo/local.yaml:ro
 
   prometheus:
     image: prom/prometheus:latest
