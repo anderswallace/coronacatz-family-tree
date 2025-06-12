@@ -2,7 +2,7 @@
   "name": "Linux Dev Container",
   "dockerComposeFile": ["docker-compose.yaml"],
   "service": "dev",
-  "runServices": ["otel-collector"],
+  "runServices": ["otel-collector", "loki", "tempo", "prometheus", "grafana"],
   "workspaceFolder": "/workspace/",
   "customizations": {
     "vscode": {

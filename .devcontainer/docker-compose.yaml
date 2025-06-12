@@ -3,7 +3,10 @@ services:
   dev:
     environment:
       - OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=http://otel-collector:4318/v1/logs
-      - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://otel-collector:4318/v1/traces
+      - OTEL_EXPORTER_OTLP_METRICS_ENDPOINT=http://otel-collector:4318/v1/metrics
+      # Single line for all signals
+      # - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
     build:
       args:
         USERNAME: anders
@@ -30,6 +33,29 @@ services:
       - "4318:4318" # OTLP/HTTP
       - "8888:8888" # Collector metrics
     volumes:
-      - ./otel-config.yaml:/etc/otel/config.yaml
+      - ./otel-config.yaml:/etc/otel/config.yaml:ro
+    command: ["--config=/etc/otel/config.yaml"]
+    depends_on: [loki, tempo, prometheus]
+
+  loki:
+    image: grafana/loki:3.0.0
+    ports: ["3100:3100"]
+
+  tempo:
+    image: grafana/tempo:2.6.0
     command:
-      - --config=/etc/otel/config.yaml
+      - "--config.file=/etc/tempo/local.yaml"
+
+  prometheus:
+    image: prom/prometheus:latest
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9091:9090"]
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    ports: ["3000:3000"]
+    depends_on: [loki, tempo, prometheus]
