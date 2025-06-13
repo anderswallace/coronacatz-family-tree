@@ -1,6 +1,8 @@
 import { GuildMember, PartialGuildMember } from "discord.js";
 import { ServiceContainer } from "../services/index.js";
 import { UserNotFoundError } from "../errors/customErrors.js";
+import { SpanStatusCode } from "@opentelemetry/api";
+import { tracer } from "../telemetry/tracing.js";
 
 /**
  * Factory that creates an 'onGuildMemberUpdate' event listener
@@ -15,35 +17,60 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
     oldMember: GuildMember | PartialGuildMember,
     newMember: GuildMember,
   ) {
-    // resolve display name of new user as they may not have nickname assigned
-    const newName = newMember.displayName;
+    // Root span for guildMemberUpdate event
+    await tracer.startActiveSpan(
+      "guildMemberUpdate",
+      {
+        attributes: {
+          "discord.user_id": newMember.id,
+          "discord.user_newName": newMember.displayName,
+        },
+      },
+      async (span) => {
+        try {
+          // resolve display name of new user as they may not have nickname assigned
+          const newName = newMember.displayName;
 
-    try {
-      // attempt to query user in DB, if they do not exist this will throw an error
-      const oldUser = await services.databaseService.fetchNodeById(
-        oldMember.user.id,
-      );
+          // attempt to query user in DB, if they do not exist this will throw an error
+          const oldUser = await services.databaseService.fetchNodeById(
+            oldMember.user.id,
+          );
 
-      // Check if oldMember is a PartialGuildMember (only userId is available)
-      // If so, get old name from DB node, otherwise resolve from display name
-      const oldName = oldMember.partial ? oldUser.name : oldMember.displayName;
+          // Check if oldMember is a PartialGuildMember (only userId is available)
+          // If so, get old name from DB node, otherwise resolve from display name
+          const oldName = oldMember.partial
+            ? oldUser.name
+            : oldMember.displayName;
 
-      // if name is unchanged, return
-      if (oldName === newName) {
-        return;
-      }
+          // if name is unchanged, return
+          if (oldName === newName) {
+            return;
+          }
 
-      // update new name in DB
-      await services.databaseService.updateNode(newMember.user.id, newName);
-    } catch (err) {
-      // User exists in the server but hasn't been added to the DB yet, no action needed
-      if (err instanceof UserNotFoundError) {
-        console.log("Ignoring rename of user not in the family tree");
-      } else if (err instanceof Error) {
-        console.warn(err.message);
-      } else {
-        console.warn("Unknown error occurred on guildMemberUpdate event");
-      }
-    }
+          // update new name in DB
+          await services.databaseService.updateNode(newMember.user.id, newName);
+
+          span.setStatus({ code: SpanStatusCode.OK });
+        } catch (err) {
+          // Log error in trace
+          span.recordException(err as Error);
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: (err as Error).message,
+          });
+
+          // User exists in the server but hasn't been added to the DB yet, no action needed
+          if (err instanceof UserNotFoundError) {
+            console.log("Ignoring rename of user not in the family tree");
+          } else if (err instanceof Error) {
+            console.warn(err.message);
+          } else {
+            console.warn("Unknown error occurred on guildMemberUpdate event");
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   };
 }

@@ -6,6 +6,8 @@ import {
 import { IDatabaseService } from "./IDatabaseService.js";
 import { Prisma, PrismaClient, Node } from "@prisma/client";
 import { logs, SeverityNumber } from "@opentelemetry/api-logs";
+import { tracer } from "../../telemetry/tracing.js";
+import { SpanStatusCode } from "@opentelemetry/api";
 
 const logger = logs.getLogger("db-service");
 
@@ -23,28 +25,42 @@ export class DatabaseService implements IDatabaseService {
     client: Prisma.TransactionClient,
     userId: string,
   ) {
-    const node = await client.node.findUnique({
-      where: { userId },
-    });
+    // Root span for _fetchNodeById
+    return tracer.startActiveSpan(
+      "databaseService._fetchNodeById",
+      {
+        attributes: {
+          "app.user_id": userId,
+        },
+      },
+      async (span) => {
+        const node = await client.node.findUnique({
+          where: { userId },
+        });
 
-    if (!node) {
-      // Log warning of user not being found
-      logger.emit({
-        body: "User not found",
-        severityNumber: SeverityNumber.ERROR,
-        attributes: { userId },
-      });
-      throw new UserNotFoundError(userId);
-    }
+        if (!node) {
+          // Log warning of user not being found
+          logger.emit({
+            body: "User not found",
+            severityNumber: SeverityNumber.ERROR,
+            attributes: { userId },
+          });
 
-    // Log information about DB operation to OpenTel
-    logger.emit({
-      body: "Node fetched",
-      severityNumber: SeverityNumber.INFO,
-      attributes: { userId },
-    });
+          throw new UserNotFoundError(userId);
+        }
 
-    return node;
+        // Log information about DB operation to OpenTel
+        logger.emit({
+          body: "Node fetched",
+          severityNumber: SeverityNumber.INFO,
+          attributes: { userId },
+        });
+
+        span.end();
+
+        return node;
+      },
+    );
   }
 
   /**
@@ -210,63 +226,90 @@ export class DatabaseService implements IDatabaseService {
    * @param newName - New name to update to in DB
    */
   public async updateNode(userId: string, newName: string): Promise<void> {
-    try {
-      const user = await this.fetchNodeById(userId);
-      const oldName = user.name;
+    // Root span for updateNode operation
+    return tracer.startActiveSpan(
+      "databaseService.updateNode",
+      {
+        attributes: {
+          "app.user_id": userId,
+          "app.new_name": newName,
+        },
+      },
+      async (span) => {
+        try {
+          const user = await this.fetchNodeById(userId);
+          const oldName = user.name;
 
-      const operations = [];
+          const operations = [];
 
-      // update name of user to newly assigned name
-      operations.push(
-        this.prismaClient.node.update({
-          where: { userId },
-          data: { name: newName },
-        }),
-      );
+          // update name of user to newly assigned name
+          operations.push(
+            this.prismaClient.node.update({
+              where: { userId },
+              data: { name: newName },
+            }),
+          );
 
-      // check if user is a Founder
-      const isFounder = oldName === user.group;
+          // check if user is a Founder
+          const isFounder = oldName === user.group;
 
-      // update group name to new name if user is a Founder
-      if (isFounder) {
-        operations.push(
-          this.prismaClient.node.updateMany({
-            where: { group: user.group },
-            data: { group: newName },
-          }),
-        );
-      }
+          // update group name to new name if user is a Founder
+          if (isFounder) {
+            operations.push(
+              this.prismaClient.node.updateMany({
+                where: { group: user.group },
+                data: { group: newName },
+              }),
+            );
+          }
 
-      // push all operations as transaction
-      await this.prismaClient.$transaction(operations);
+          // push all operations as transaction
+          await this.prismaClient.$transaction(operations);
+          span.setStatus({ code: SpanStatusCode.OK });
 
-      // Log information about node name change
-      logger.emit({
-        body: "Node name updated",
-        severityNumber: SeverityNumber.INFO,
-        attributes: { userId, oldName, newName, isFounder },
-      });
-    } catch (err) {
-      if (err instanceof Error) {
-        // Log information about failed update transaction
-        logger.emit({
-          body: "Prisma operation failed",
-          severityNumber: SeverityNumber.ERROR,
-          attributes: { userId, newName, err: (err as Error).message },
-        });
+          // Log information about node name change
+          logger.emit({
+            body: "Node name updated",
+            severityNumber: SeverityNumber.INFO,
+            attributes: { userId, oldName, newName, isFounder },
+          });
+        } catch (err) {
+          if (err instanceof Error) {
+            // Log information about failed update transaction
+            span.recordException(err as Error);
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: (err as Error).message,
+            });
 
-        throw new PrismaOperationError(err.message);
-      } else {
-        // Log information about unknown error
-        logger.emit({
-          body: "Unknown Prisma error",
-          severityNumber: SeverityNumber.ERROR2,
-          attributes: { userId, newName, err: (err as Error).message },
-        });
+            logger.emit({
+              body: "Prisma operation failed",
+              severityNumber: SeverityNumber.ERROR,
+              attributes: { userId, newName, err: (err as Error).message },
+            });
 
-        throw new PrismaOperationError("Unknown Error");
-      }
-    }
+            throw new PrismaOperationError(err.message);
+          } else {
+            // Log information about unknown error
+            span.recordException(err as Error);
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: (err as Error).message,
+            });
+
+            logger.emit({
+              body: "Unknown Prisma error",
+              severityNumber: SeverityNumber.ERROR2,
+              attributes: { userId, newName, err: (err as Error).message },
+            });
+
+            throw new PrismaOperationError("Unknown Error");
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   }
 
   /**
