@@ -35,17 +35,20 @@ services:
     volumes:
       - ./otel-config.yaml:/etc/otel/config.yaml:ro
     command: ["--config=/etc/otel/config.yaml"]
-    depends_on: [loki, tempo, prometheus]
 
   loki:
     image: grafana/loki:3.0.0
     ports: ["3100:3100"]
+    depends_on:
+      - otel-collector
 
   tempo:
     image: grafana/tempo:2.6.0
     command: ["-config.file=/etc/tempo/local.yaml"]
     volumes:
       - ./tempo-local.yaml:/etc/tempo/local.yaml:ro
+    depends_on:
+      - otel-collector
 
   prometheus:
     image: prom/prometheus:latest
@@ -55,6 +58,8 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports: ["9091:9090"]
+    depends_on:
+      - otel-collector
 
   grafana:
     image: grafana/grafana:11.0.0
