@@ -109,23 +109,60 @@ export class DatabaseService implements IDatabaseService {
     parentId: string,
     name: string,
   ): Promise<void> {
-    // create transaction client for atomicity
-    await this.prismaClient
-      .$transaction(async (tx) => {
-        await this._uploadNode(tx, userId, parentId, name);
-      })
-      .catch((err) => {
-        if (
-          err instanceof Prisma.PrismaClientKnownRequestError &&
-          err.code === "P2002"
-        ) {
-          throw new UserAlreadyExistsError(name);
-        } else if (err instanceof Error) {
-          throw new PrismaOperationError(err.message);
-        } else {
-          throw new PrismaOperationError("Unknown Prisma Error");
-        }
-      });
+    // Root span for uploadNode
+    return tracer.startActiveSpan(
+      "databaseService.uploadNode",
+      {
+        attributes: {
+          "app.user_id": userId,
+          "app.parent_id": parentId,
+          "app.user_name": name,
+        },
+      },
+      async (span) => {
+        // create transaction client for atomicity
+        await this.prismaClient
+          .$transaction(async (tx) => {
+            await this._uploadNode(tx, userId, parentId, name);
+            span.setStatus({ code: SpanStatusCode.OK });
+          })
+          .catch((err) => {
+            if (
+              err instanceof Prisma.PrismaClientKnownRequestError &&
+              err.code === "P2002"
+            ) {
+              const userError = new UserAlreadyExistsError(name);
+              span.recordException(userError);
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: userError.message,
+              });
+              throw userError;
+            } else if (err instanceof Error) {
+              const prismaError = new PrismaOperationError(err.message);
+              span.recordException(prismaError);
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: prismaError.message,
+              });
+              throw prismaError;
+            } else {
+              const prismaError = new PrismaOperationError(
+                "Unknown Prisma Error",
+              );
+              span.recordException(prismaError);
+              span.setStatus({
+                code: SpanStatusCode.ERROR,
+                message: prismaError.message,
+              });
+              throw prismaError;
+            }
+          })
+          .finally(() => {
+            span.end();
+          });
+      },
+    );
   }
 
   /**
@@ -246,48 +283,73 @@ export class DatabaseService implements IDatabaseService {
    * @param userId - Discord User ID of node to remove
    */
   public async removeNode(userId: string): Promise<void> {
-    try {
-      const user = await this.fetchNodeById(userId);
-      const parent = await this.fetchNodeById(user.parentId);
+    return tracer.startActiveSpan(
+      "databaseService.removeNode",
+      {
+        attributes: {
+          "app.user_id": userId,
+        },
+      },
+      async (span) => {
+        try {
+          const user = await this.fetchNodeById(userId);
+          const parent = await this.fetchNodeById(user.parentId);
 
-      const operations = [];
+          const operations = [];
 
-      // re-parent all children to parent of node being removed
-      operations.push(
-        this.prismaClient.node.updateMany({
-          where: { parentId: userId },
-          data: { parentId: parent.userId },
-        }),
-      );
+          // re-parent all children to parent of node being removed
+          operations.push(
+            this.prismaClient.node.updateMany({
+              where: { parentId: userId },
+              data: { parentId: parent.userId },
+            }),
+          );
 
-      // check if user is the root of the tree (a Founder)
-      const isFounder = user.group === user.name;
+          // check if user is the root of the tree (a Founder)
+          const isFounder = user.group === user.name;
 
-      // update old group to that of the new parent if user is a Founder
-      if (isFounder) {
-        operations.push(
-          this.prismaClient.node.updateMany({
-            where: { group: user.group },
-            data: { group: parent.group, color: parent.color },
-          }),
-        );
-      }
+          // update old group to that of the new parent if user is a Founder
+          if (isFounder) {
+            operations.push(
+              this.prismaClient.node.updateMany({
+                where: { group: user.group },
+                data: { group: parent.group, color: parent.color },
+              }),
+            );
+          }
 
-      // remove node
-      operations.push(
-        this.prismaClient.node.delete({
-          where: { userId },
-        }),
-      );
+          // remove node
+          operations.push(
+            this.prismaClient.node.delete({
+              where: { userId },
+            }),
+          );
 
-      // execute all updates atomically
-      await this.prismaClient.$transaction(operations);
-    } catch (err) {
-      if (err instanceof Error) {
-        throw new PrismaOperationError(err.message);
-      } else {
-        throw new PrismaOperationError("Unknown Prisma Error");
-      }
-    }
+          // execute all updates atomically
+          await this.prismaClient.$transaction(operations);
+          span.setStatus({ code: SpanStatusCode.OK });
+        } catch (err) {
+          if (err instanceof Error) {
+            const prismaError = new PrismaOperationError(err.message);
+            span.recordException(prismaError);
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: prismaError.message,
+            });
+            throw prismaError;
+          } else {
+            const prismaError = new PrismaOperationError(
+              "Unknown Prisma Error",
+            );
+            span.recordException(prismaError);
+            span.setStatus({
+              code: SpanStatusCode.ERROR,
+              message: prismaError.message,
+            });
+            throw prismaError;
+          }
+        }
+      },
+    );
   }
 }
