@@ -3,6 +3,9 @@ import { ServiceContainer } from "../services/index.js";
 import { UserNotFoundError } from "../errors/customErrors.js";
 import { SpanStatusCode } from "@opentelemetry/api";
 import { tracer } from "../telemetry/tracing.js";
+import { logs, SeverityNumber } from "@opentelemetry/api-logs";
+
+const logger = logs.getLogger("guildMemberUpdate");
 
 /**
  * Factory that creates an 'onGuildMemberUpdate' event listener
@@ -50,7 +53,13 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
           // update new name in DB
           await services.databaseService.updateNode(newMember.user.id, newName);
 
+          // Record successful execution
           span.setStatus({ code: SpanStatusCode.OK });
+          logger.emit({
+            body: "guildMemberUpdate: User displayName updated",
+            severityNumber: SeverityNumber.INFO,
+            attributes: { oldName, newName },
+          });
         } catch (err) {
           // Log error in trace
           span.recordException(err as Error);
@@ -62,10 +71,22 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
           // User exists in the server but hasn't been added to the DB yet, no action needed
           if (err instanceof UserNotFoundError) {
             console.log("Ignoring rename of user not in the family tree");
+            logger.emit({
+              body: `guildMemberUpdate: User ${newMember.displayName} rename ignored, not yet in database`,
+              severityNumber: SeverityNumber.INFO,
+            });
           } else if (err instanceof Error) {
             console.warn(err.message);
+            logger.emit({
+              body: `guildMemberUpdate: ${err.message}`,
+              severityNumber: SeverityNumber.ERROR,
+            });
           } else {
             console.warn("Unknown error occurred on guildMemberUpdate event");
+            logger.emit({
+              body: "guildMemberUpdate: An unknown error occurred",
+              severityNumber: SeverityNumber.ERROR2,
+            });
           }
         } finally {
           span.end();
