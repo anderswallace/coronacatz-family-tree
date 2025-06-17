@@ -56,7 +56,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
           // Record successful execution
           span.setStatus({ code: SpanStatusCode.OK });
           logger.emit({
-            body: "guildMemberUpdate: User displayName updated",
+            body: `guildMemberUpdate: User ${oldName} renamed to ${newName}`,
             severityNumber: SeverityNumber.INFO,
             attributes: { oldName, newName },
           });
@@ -84,7 +84,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
           } else {
             console.warn("Unknown error occurred on guildMemberUpdate event");
             logger.emit({
-              body: "guildMemberUpdate: An unknown error occurred",
+              body: "guildMemberUpdate: Unknown error occurred",
               severityNumber: SeverityNumber.ERROR2,
             });
           }

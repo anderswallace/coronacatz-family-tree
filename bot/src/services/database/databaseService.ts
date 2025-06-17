@@ -331,6 +331,7 @@ export class DatabaseService implements IDatabaseService {
         } catch (err) {
           if (err instanceof Error) {
             const prismaError = new PrismaOperationError(err.message);
+
             span.recordException(prismaError);
             span.setStatus({
               code: SpanStatusCode.ERROR,
@@ -341,6 +342,7 @@ export class DatabaseService implements IDatabaseService {
             const prismaError = new PrismaOperationError(
               "Unknown Prisma Error",
             );
+
             span.recordException(prismaError);
             span.setStatus({
               code: SpanStatusCode.ERROR,
@@ -348,6 +350,8 @@ export class DatabaseService implements IDatabaseService {
             });
             throw prismaError;
           }
+        } finally {
+          span.end();
         }
       },
     );
