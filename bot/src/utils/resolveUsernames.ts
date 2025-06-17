@@ -1,4 +1,6 @@
 import { Message } from "discord.js";
+import { tracer } from "../telemetry/tracing.js";
+import { SpanStatusCode } from "@opentelemetry/api";
 
 /**
  * Resolves the display names of two User IDs from Discord message
@@ -16,17 +18,42 @@ export async function resolveUsernames(
   childId: string,
   parentId: string,
 ): Promise<{ childUsername: string; parentUsername: string } | null> {
-  const childUser = await fetchGuildMember(message, childId);
-  const parentUser = await fetchGuildMember(message, parentId);
+  // Root span for resolveUsernames
+  return tracer.startActiveSpan(
+    "resolveUsernames",
+    {
+      attributes: {
+        "discord.message": message.content,
+        "app.child_id": childId,
+        "app.parent_id": parentId,
+      },
+    },
+    async (span) => {
+      try {
+        const childUser = await fetchGuildMember(message, childId);
+        const parentUser = await fetchGuildMember(message, parentId);
 
-  if (childUser === null || parentUser === null) {
-    return null;
-  }
+        if (childUser === null || parentUser === null) {
+          return null;
+        }
 
-  const childUsername = childUser.displayName;
-  const parentUsername = parentUser.displayName;
+        const childUsername = childUser.displayName;
+        const parentUsername = parentUser.displayName;
 
-  return { childUsername, parentUsername };
+        span.setStatus({ code: SpanStatusCode.OK });
+        return { childUsername, parentUsername };
+      } catch (error) {
+        span.recordException(error as Error);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: (error as Error).message,
+        });
+        throw error;
+      } finally {
+        span.end();
+      }
+    },
+  );
 }
 
 /**

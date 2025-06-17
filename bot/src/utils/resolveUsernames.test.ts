@@ -1,6 +1,7 @@
 import { GuildMember, User, Message, Guild } from "discord.js";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { resolveUsernames } from "./resolveUsernames.js";
+import { MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUE_DELAY } from "@opentelemetry/semantic-conventions/incubating";
 
 // Helper function to mock a GuildMember
 function createMockGuildMember({
@@ -30,7 +31,7 @@ describe("resolveUsernames", () => {
     vi.clearAllMocks();
   });
 
-  test("Should return two valid nicknames upon successful fetch", async () => {
+  test("resolveUsernames should return two valid nicknames upon successful fetch", async () => {
     const fetch = vi
       .fn()
       .mockReturnValueOnce(
@@ -64,7 +65,7 @@ describe("resolveUsernames", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  test("Should return null if message was not sent from server", async () => {
+  test("resolveUsername should return null if message was not sent from server", async () => {
     // mock message sent from outside a server
     const mockMessage = {} as Message;
 
@@ -73,7 +74,7 @@ describe("resolveUsernames", () => {
     expect(result).toBeNull();
   });
 
-  test("Should assign username when nickname and globalName are not present", async () => {
+  test("resolveUsernames should assign username when nickname and globalName are not present", async () => {
     const fetch = vi
       .fn()
       .mockReturnValueOnce(
@@ -104,7 +105,7 @@ describe("resolveUsernames", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  test("Should return null if fetch fails for one or both users", async () => {
+  test("resolveUsernames should return null if fetch fails for one or both users", async () => {
     // mock fetch being called 4 times
     const fetch = vi
       .fn()
@@ -138,5 +139,21 @@ describe("resolveUsernames", () => {
       "parent-id",
     );
     expect(secondResult).toBeNull();
+  });
+
+  test("resolveUsernames should throw an error when fetch fails", async () => {
+    const fetch = vi.fn().mockRejectedValueOnce(new Error("Discord Error"));
+
+    const mockMessage = {
+      guild: {
+        members: {
+          fetch,
+        },
+      } as unknown as Guild,
+    } as Message;
+
+    await expect(
+      resolveUsernames(mockMessage, "child-id", "parent-id"),
+    ).rejects.toThrow(Error);
   });
 });
