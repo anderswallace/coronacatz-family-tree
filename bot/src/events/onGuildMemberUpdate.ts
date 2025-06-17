@@ -56,7 +56,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
           // Record successful execution
           span.setStatus({ code: SpanStatusCode.OK });
           logger.emit({
-            body: `guildMemberUpdate: User ${oldName} renamed to ${newName}`,
+            body: `guildMemberUpdate: User [${oldName}] renamed to [${newName}]`,
             severityNumber: SeverityNumber.INFO,
             attributes: { oldName, newName },
           });

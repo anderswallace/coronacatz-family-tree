@@ -13,6 +13,9 @@ import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { PrismaInstrumentation } from "@prisma/instrumentation";
+import { HostMetrics } from "@opentelemetry/host-metrics";
+import { RuntimeNodeInstrumentation } from "@opentelemetry/instrumentation-runtime-node";
+import { metrics } from "@opentelemetry/api";
 
 const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: "discord-bot",
@@ -23,7 +26,7 @@ const traceExporter = new OTLPTraceExporter();
 
 const metricReader = new PeriodicExportingMetricReader({
   exporter: new OTLPMetricExporter(),
-  exportIntervalMillis: 30_000,
+  exportIntervalMillis: 15_000,
 });
 
 const logProcessors = [new BatchLogRecordProcessor(new OTLPLogExporter())];
@@ -40,10 +43,21 @@ const sdk = new NodeSDK({
   traceExporter,
   metricReader,
   logRecordProcessors: logProcessors,
-  instrumentations: [new PrismaInstrumentation({})], // Tracing for Prisma Operations
+  instrumentations: [
+    new PrismaInstrumentation({}), // Tracing for Prisma Operations
+    new RuntimeNodeInstrumentation({
+      monitoringPrecision: 5000,
+    }),
+  ],
 });
 
 sdk.start();
+
+const hostMetrics = new HostMetrics({
+  meterProvider: metrics.getMeterProvider(),
+});
+
+hostMetrics.start();
 
 process.on("SIGTERM", () => sdk.shutdown());
 process.on("SIGINT", () => sdk.shutdown());
