@@ -80,7 +80,6 @@ export function createOnMessageCreate(
           await channel.send(
             `Family tree updated! Added ${childUsername} to ${parentUsername}`,
           );
-          await message.delete();
         } catch (error) {
           // Log error in trace
           span.recordException(error as Error);
@@ -95,14 +94,12 @@ export function createOnMessageCreate(
               severityNumber: SeverityNumber.ERROR,
             });
             await channel.send(`**ERROR**: ${error.message}`);
-            await message.delete();
           } else {
             logger.emit({
               body: "messageCreate: Unknown error occurred",
               severityNumber: SeverityNumber.ERROR2,
             });
             await channel.send("Unknown error.");
-            await message.delete();
           }
         } finally {
           span.end();

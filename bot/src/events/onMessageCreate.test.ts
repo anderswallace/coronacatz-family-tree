@@ -137,8 +137,6 @@ describe("onMessageCreate", () => {
     // Mock methods on channel and message
     const sendMock = vi.fn();
     channel.send = sendMock;
-    const deleteMock = vi.fn();
-    mockMessage.delete = deleteMock;
 
     const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
@@ -189,8 +187,6 @@ describe("onMessageCreate", () => {
 
     const sendMock = vi.fn();
     channel.send = sendMock;
-    const deleteMock = vi.fn();
-    mockMessage.delete = deleteMock;
 
     const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
@@ -202,7 +198,6 @@ describe("onMessageCreate", () => {
     expect(sendMock).toHaveBeenCalledWith(
       `Family tree updated! Added ${mockChildNickname} to ${mockParentNickname}`,
     );
-    expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 
   test("Should call channel.send with handled error when API fails", async () => {
@@ -234,8 +229,6 @@ describe("onMessageCreate", () => {
 
     const sendMock = vi.fn();
     channel.send = sendMock;
-    const deleteMock = vi.fn();
-    mockMessage.delete = deleteMock;
 
     const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
@@ -245,7 +238,6 @@ describe("onMessageCreate", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(sendMock.mock.calls[0][0].toLowerCase()).toContain("unknown user");
-    expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 
   test("Should handle non-errors thrown by sending 'Unknown error' to channel", async () => {
@@ -277,8 +269,6 @@ describe("onMessageCreate", () => {
 
     const sendMock = vi.fn();
     channel.send = sendMock;
-    const deleteMock = vi.fn();
-    mockMessage.delete = deleteMock;
 
     const onMessageCreate = createOnMessageCreate(mockServices, targetChannel);
 
@@ -288,6 +278,5 @@ describe("onMessageCreate", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(sendMock).toHaveBeenCalledWith("Unknown error.");
-    expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,7 +1,6 @@
 import { GuildMember, User, Message, Guild } from "discord.js";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { resolveUsernames } from "./resolveUsernames.js";
-import { MESSAGING_ROCKETMQ_MESSAGE_TYPE_VALUE_DELAY } from "@opentelemetry/semantic-conventions/incubating";
 
 // Helper function to mock a GuildMember
 function createMockGuildMember({
