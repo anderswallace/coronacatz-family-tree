@@ -73,7 +73,7 @@ export function createOnMessageCreate(
           // Record successful execution
           span.setStatus({ code: SpanStatusCode.OK });
           logger.emit({
-            body: `messageCreate: User [${childUsername}] added under [${parentUsername}]`,
+            body: `[SUCCESS] messageCreate: User [${childUsername}] added under [${parentUsername}]`,
             severityNumber: SeverityNumber.INFO,
           });
 
@@ -90,13 +90,13 @@ export function createOnMessageCreate(
 
           if (error instanceof Error) {
             logger.emit({
-              body: `messageCreate: ${error.message}`,
+              body: `[ERROR] messageCreate: ${error.message}`,
               severityNumber: SeverityNumber.ERROR,
             });
             await channel.send(`**ERROR**: ${error.message}`);
           } else {
             logger.emit({
-              body: "messageCreate: Unknown error occurred",
+              body: "[ERROR] messageCreate: Unknown error occurred",
               severityNumber: SeverityNumber.ERROR2,
             });
             await channel.send("Unknown error.");

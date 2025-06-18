@@ -34,7 +34,7 @@ export function createOnGuildMemberRemove(services: ServiceContainer) {
           // Record OK status in trace and logs
           span.setStatus({ code: SpanStatusCode.OK });
           logger.emit({
-            body: `guildMemberRemove: User ${member.user.id} removed from DB`,
+            body: `[SUCCESS] guildMemberRemove: User ${member.user.id} removed from DB`,
             attributes: { userId: member.user.id },
             severityNumber: SeverityNumber.INFO,
           });
@@ -42,7 +42,7 @@ export function createOnGuildMemberRemove(services: ServiceContainer) {
           // Record error in logs
           if (err instanceof Error) {
             logger.emit({
-              body: `guildMemberRemove: ${err.message}`,
+              body: `[ERROR] guildMemberRemove: ${err.message}`,
               attributes: { userId: member.user.id },
               severityNumber: SeverityNumber.ERROR,
             });
@@ -50,7 +50,7 @@ export function createOnGuildMemberRemove(services: ServiceContainer) {
             const error = new Error("Unknown error occurred");
 
             logger.emit({
-              body: `guildMemberRemove: ${error.message}`,
+              body: `[ERROR] guildMemberRemove: ${error.message}`,
               attributes: { userId: member.user.id },
               severityNumber: SeverityNumber.ERROR2,
             });

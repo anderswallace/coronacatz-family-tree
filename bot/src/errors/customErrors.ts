@@ -1,4 +1,3 @@
-// TODO: Update to print name instead of ID
 export class UserNotFoundError extends Error {
   constructor(public id: string) {
     super(`User with ID ${id} not found in the database`);

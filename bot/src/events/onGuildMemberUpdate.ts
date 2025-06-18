@@ -56,7 +56,7 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
           // Record successful execution
           span.setStatus({ code: SpanStatusCode.OK });
           logger.emit({
-            body: `guildMemberUpdate: User [${oldName}] renamed to [${newName}]`,
+            body: `[SUCCESS] guildMemberUpdate: User [${oldName}] renamed to [${newName}]`,
             severityNumber: SeverityNumber.INFO,
             attributes: { oldName, newName },
           });
@@ -72,19 +72,19 @@ export function createOnGuildMemberUpdate(services: ServiceContainer) {
           if (err instanceof UserNotFoundError) {
             console.log("Ignoring rename of user not in the family tree");
             logger.emit({
-              body: `guildMemberUpdate: User ${newMember.displayName} rename ignored, not yet in database`,
+              body: `[INFO] guildMemberUpdate: User ${newMember.displayName} rename ignored, not yet in database`,
               severityNumber: SeverityNumber.INFO,
             });
           } else if (err instanceof Error) {
             console.warn(err.message);
             logger.emit({
-              body: `guildMemberUpdate: ${err.message}`,
+              body: `[ERROR] guildMemberUpdate: ${err.message}`,
               severityNumber: SeverityNumber.ERROR,
             });
           } else {
             console.warn("Unknown error occurred on guildMemberUpdate event");
             logger.emit({
-              body: "guildMemberUpdate: Unknown error occurred",
+              body: "[ERROR] guildMemberUpdate: Unknown error occurred",
               severityNumber: SeverityNumber.ERROR2,
             });
           }
