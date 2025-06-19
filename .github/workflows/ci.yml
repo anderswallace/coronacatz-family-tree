@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      web_changed: ${{ steps.filter.outputs.web_changed }}
+      bot_changed: ${{ steps.filter.outputs.bot_changed }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: filter
+        run: |
+          echo "web_changed=false" >> $GITHUB_OUTPUT
+          echo "bot_changed=false" >> $GITHUB_OUTPUT
+
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha}})
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          if echo "$CHANGED" | grep -q '^web/'; then
+            echo "web_changed=true" >> $GITHUB_OUTPUT; 
+          fi
+
+          if echo "$CHANGED" | grep -q '^bot/'; then
+            echo "bot_changed=true" >> $GITHUB_OUTPUT; 
+          fi
+
+  test-web:
+    name: Run Web Tests
+    needs: detect-changes
+    if: needs.detect-changes.outputs.web_changed == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23.5.0
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test
+
+  test-bot:
+    name: Run Bot Tests
+    needs: detect-changes
+    if: needs.detect-changes.outputs.bot_changed == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bot
+
+    steps:
+      - name: Checkout bot repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.5.0
+          cache: npm
+          cache-dependency-path: bot/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test
+
+  build-web:
+    name: Build Web Code
+    needs: test-web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      DATABASE_URL: postgres://fake:fake@localhost:5432/dummy
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.5.0
+          cache: npm
+
+      - name: Install Web Dependencies
+        run: npm ci
+
+      - name: Build Web
+        run: npm run build
+
+  build-bot:
+    name: Build Bot Code
+    needs: test-bot
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bot
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.5.0
+          cache: npm
+
+      - name: Install Web Dependencies
+        run: npm ci
+
+      - name: Build Bot
+        run: npm run build
