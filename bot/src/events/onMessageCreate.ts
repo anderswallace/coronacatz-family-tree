@@ -28,7 +28,10 @@ export function createOnMessageCreate(
     await tracer.startActiveSpan(
       "messageCreate",
       {
-        attributes: { "discord.message": message.content },
+        attributes: {
+          "discord.message_content": message.content,
+          "discord.message_author": message.author.displayName,
+        },
       },
       async (span) => {
         const channel = message.channel as TextChannel;

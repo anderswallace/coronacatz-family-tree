@@ -7,6 +7,7 @@ import { IDatabaseService } from "./IDatabaseService.js";
 import { Prisma, PrismaClient, Node } from "@prisma/client";
 import { tracer } from "../../telemetry/tracing.js";
 import { SpanStatusCode } from "@opentelemetry/api";
+import { UNIQUE_CONSTRAINT_FAILED } from "../../errors/prismaCodes.js";
 
 export class DatabaseService implements IDatabaseService {
   constructor(private prismaClient: PrismaClient) {}
@@ -129,7 +130,7 @@ export class DatabaseService implements IDatabaseService {
           .catch((err) => {
             if (
               err instanceof Prisma.PrismaClientKnownRequestError &&
-              err.code === "P2002"
+              err.code === UNIQUE_CONSTRAINT_FAILED
             ) {
               const userError = new UserAlreadyExistsError(name);
               span.recordException(userError);
