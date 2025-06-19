@@ -218,7 +218,6 @@ export class DatabaseService implements IDatabaseService {
       async (span) => {
         try {
           const user = await this.fetchNodeById(userId);
-          const oldName = user.name;
 
           const operations = [];
 
@@ -230,11 +229,8 @@ export class DatabaseService implements IDatabaseService {
             }),
           );
 
-          // check if user is a Founder
-          const isFounder = oldName === user.group;
-
           // update group name to new name if user is a Founder
-          if (isFounder) {
+          if (isFounder(user)) {
             operations.push(
               this.prismaClient.node.updateMany({
                 where: { group: user.group },
@@ -306,11 +302,8 @@ export class DatabaseService implements IDatabaseService {
             }),
           );
 
-          // check if user is the root of the tree (a Founder)
-          const isFounder = user.group === user.name;
-
           // update old group to that of the new parent if user is a Founder
-          if (isFounder) {
+          if (isFounder(user)) {
             operations.push(
               this.prismaClient.node.updateMany({
                 where: { group: user.group },
@@ -357,4 +350,14 @@ export class DatabaseService implements IDatabaseService {
       },
     );
   }
+}
+
+/**
+ * Utility function to determine if Discord User is a Founder (original member of the server)
+ *
+ * @param user - Member of the Discord Server
+ * @returns Boolean on whether member is a Founder
+ */
+function isFounder(user: Node): Boolean {
+  return user.name === user.group;
 }
