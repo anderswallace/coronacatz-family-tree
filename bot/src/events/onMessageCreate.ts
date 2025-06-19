@@ -3,6 +3,11 @@ import { parseAddMessage } from "../utils/parseAddMessage.js";
 import { resolveUsernames } from "../utils/resolveUsernames.js";
 import { ServiceContainer } from "../services/index.js";
 import { DiscordChannel } from "../types/discord.js";
+import { tracer } from "../telemetry/tracing.js";
+import { logs, SeverityNumber } from "@opentelemetry/api-logs";
+import { SpanStatusCode } from "@opentelemetry/api";
+
+const logger = logs.getLogger("messageCreate");
 
 /**
  * Factory that creates an 'onMessageCreate' event listener
@@ -19,53 +24,90 @@ export function createOnMessageCreate(
   targetChannelName: DiscordChannel,
 ) {
   return async function onMessageCreate(message: Message) {
-    const channel = message.channel as TextChannel;
-    if (channel.name !== targetChannelName) {
-      return;
-    }
+    // Root span for messageCreate event
+    await tracer.startActiveSpan(
+      "messageCreate",
+      {
+        attributes: {
+          "discord.message_content": message.content,
+          "discord.message_author": message.author.displayName,
+        },
+      },
+      async (span) => {
+        const channel = message.channel as TextChannel;
+        if (channel.name !== targetChannelName) {
+          return;
+        }
 
-    try {
-      if (message.author.bot) {
-        return;
-      }
+        try {
+          if (message.author.bot) {
+            return;
+          }
 
-      // Parse user IDs from message
-      const parsedUsers = parseAddMessage(message.content);
-      if (!parsedUsers) {
-        return;
-      }
+          // Parse user IDs from message
+          const parsedUsers = parseAddMessage(message.content);
+          if (!parsedUsers) {
+            return;
+          }
 
-      const { childId, parentId } = parsedUsers;
+          const { childId, parentId } = parsedUsers;
 
-      // Return usernames from user IDs
-      const resolvedNames = await resolveUsernames(message, childId, parentId);
-      if (!resolvedNames) {
-        await channel.send(
-          "One or more users couldn't be found. Please try again",
-        );
-        return;
-      }
+          // Return usernames from user IDs
+          const resolvedNames = await resolveUsernames(
+            message,
+            childId,
+            parentId,
+          );
+          if (!resolvedNames) {
+            await channel.send(
+              "One or more users couldn't be found. Please try again",
+            );
+            return;
+          }
 
-      const { childUsername, parentUsername } = resolvedNames;
+          const { childUsername, parentUsername } = resolvedNames;
 
-      await services.databaseService.uploadNode(
-        childId,
-        parentId,
-        childUsername,
-      );
+          await services.databaseService.uploadNode(
+            childId,
+            parentId,
+            childUsername,
+          );
 
-      await channel.send(
-        `Family tree updated! Added ${childUsername} to ${parentUsername}`,
-      );
-      await message.delete();
-    } catch (error) {
-      if (error instanceof Error) {
-        await channel.send(`**ERROR**: ${error.message}`);
-        await message.delete();
-      } else {
-        await channel.send("Unknown error.");
-        await message.delete();
-      }
-    }
+          // Record successful execution
+          span.setStatus({ code: SpanStatusCode.OK });
+          logger.emit({
+            body: `[SUCCESS] messageCreate: User [${childUsername}] added under [${parentUsername}]`,
+            severityNumber: SeverityNumber.INFO,
+          });
+
+          await channel.send(
+            `Family tree updated! Added ${childUsername} to ${parentUsername}`,
+          );
+        } catch (error) {
+          // Log error in trace
+          span.recordException(error as Error);
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: (error as Error).message,
+          });
+
+          if (error instanceof Error) {
+            logger.emit({
+              body: `[ERROR] messageCreate: ${error.message}`,
+              severityNumber: SeverityNumber.ERROR,
+            });
+            await channel.send(`**ERROR**: ${error.message}`);
+          } else {
+            logger.emit({
+              body: "[ERROR] messageCreate: Unknown error occurred",
+              severityNumber: SeverityNumber.ERROR2,
+            });
+            await channel.send("Unknown error.");
+          }
+        } finally {
+          span.end();
+        }
+      },
+    );
   };
 }

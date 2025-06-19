@@ -51,7 +51,7 @@ describe("databaseService", () => {
     });
   });
 
-  test("fetchNodeById should throw error when user does not exists in database", async () => {
+  test("fetchNodeById should throw error when user does not exist in database", async () => {
     (prismaMock.node.findUnique as Mock).mockResolvedValue(null);
 
     const service = new DatabaseService(prismaMock);
