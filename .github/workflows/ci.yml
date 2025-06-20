@@ -7,7 +7,7 @@ on:
 jobs:
   detect-changes:
     name: Detect Changes
-    runs-on: ubuntu-latest
+    runs-on: ubuntu:24.04
     outputs:
       web_changed: ${{ steps.filter.outputs.web_changed }}
       bot_changed: ${{ steps.filter.outputs.bot_changed }}
@@ -27,67 +27,19 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          if echo "$CHANGED" | grep -q '^web/'; then
+          if echo "$CHANGED_FILES" | grep -q '^web/'; then
             echo "web_changed=true" >> $GITHUB_OUTPUT; 
           fi
 
-          if echo "$CHANGED" | grep -q '^bot/'; then
+          if echo "$CHANGED_FILES" | grep -q '^bot/'; then
             echo "bot_changed=true" >> $GITHUB_OUTPUT; 
           fi
 
-  test-web:
-    name: Run Web Tests
-    needs: detect-changes
-    if: needs.detect-changes.outputs.web_changed == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 23.5.0
-          cache: npm
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run Tests
-        run: npm run test
-
-  test-bot:
-    name: Run Bot Tests
-    needs: detect-changes
-    if: needs.detect-changes.outputs.bot_changed == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: bot
-
-    steps:
-      - name: Checkout bot repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 23.5.0
-          cache: npm
-          cache-dependency-path: bot/package-lock.json
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run Tests
-        run: npm run test
-
   build-web:
     name: Build Web Code
-    needs: test-web
-    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.web_changed == 'true'
+    runs-on: ubuntu:24.04
     defaults:
       run:
         working-directory: web
@@ -112,8 +64,9 @@ jobs:
 
   build-bot:
     name: Build Bot Code
-    needs: test-bot
-    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.bot_changed == 'true'
+    runs-on: ubuntu:24.04
     defaults:
       run:
         working-directory: bot
@@ -133,3 +86,50 @@ jobs:
 
       - name: Build Bot
         run: npm run build
+
+  test-web:
+    name: Run Web Tests
+    needs: build-web
+    runs-on: ubuntu:24.04
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 23.5.0
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test
+
+  test-bot:
+    name: Run Bot Tests
+    needs: build-bot
+    runs-on: ubuntu:24.04
+    defaults:
+      run:
+        working-directory: bot
+
+    steps:
+      - name: Checkout bot repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23.5.0
+          cache: npm
+          cache-dependency-path: bot/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm run test
