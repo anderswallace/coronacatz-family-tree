@@ -1,0 +1,26 @@
+# Secrets
+.env*
+
+# Build artifacts and dependencies
+node_modules
+dist
+
+# Version control and CI
+.git
+.gitignore
+.github
+.vscode
+.devcontainer
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# Editor / OS
+*.log
+*.swp
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Tests
+**/*.test.ts

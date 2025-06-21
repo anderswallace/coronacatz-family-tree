@@ -1,0 +1,13 @@
+services:
+  bot:
+    build:
+      dockerfile: Dockerfile
+    image: my-bot:dev
+    env_file: .env.test
+    ports:
+      - "4002:4002"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4002/health || exit 1"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
