@@ -23,7 +23,7 @@ jobs:
           echo "web_changed=false" >> $GITHUB_OUTPUT
           echo "bot_changed=false" >> $GITHUB_OUTPUT
 
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha}})
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
