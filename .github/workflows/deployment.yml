@@ -10,8 +10,8 @@ on:
 
 jobs:
   build-and-push:
-    name: Build and Push
     runs-on: ubuntu:24.04
+    name: Build and Push
 
     permissions:
       contents: read
