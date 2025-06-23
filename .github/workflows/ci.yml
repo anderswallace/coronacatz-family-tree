@@ -6,8 +6,8 @@ on:
 
 jobs:
   detect-changes:
+    runs-on: ubuntu-24.04
     name: Detect Changes
-    runs-on: ubuntu:24.04
     outputs:
       web_changed: ${{ steps.filter.outputs.web_changed }}
       bot_changed: ${{ steps.filter.outputs.bot_changed }}
@@ -36,10 +36,10 @@ jobs:
           fi
 
   build-web:
+    runs-on: ubuntu-24.04
     name: Build Web Code
     needs: detect-changes
     if: needs.detect-changes.outputs.web_changed == 'true'
-    runs-on: ubuntu:24.04
     defaults:
       run:
         working-directory: web
@@ -63,10 +63,10 @@ jobs:
         run: npm run build
 
   build-bot:
+    runs-on: ubuntu-24.04
     name: Build Bot Code
     needs: detect-changes
     if: needs.detect-changes.outputs.bot_changed == 'true'
-    runs-on: ubuntu:24.04
     defaults:
       run:
         working-directory: bot
@@ -88,9 +88,9 @@ jobs:
         run: npm run build
 
   test-web:
+    runs-on: ubuntu-24.04
     name: Run Web Tests
     needs: build-web
-    runs-on: ubuntu:24.04
     defaults:
       run:
         working-directory: web
@@ -110,9 +110,9 @@ jobs:
         run: npm run test
 
   test-bot:
+    runs-on: ubuntu-24.04
     name: Run Bot Tests
     needs: build-bot
-    runs-on: ubuntu:24.04
     defaults:
       run:
         working-directory: bot
