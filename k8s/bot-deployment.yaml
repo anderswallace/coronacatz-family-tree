@@ -15,15 +15,14 @@ spec:
       spec:
         containers:
           - name: bot
+            env:
+              - name: OTEL_EXPORTER_OTLP_ENDPOINT
+                value: http://grafana-k8s-monitoring-alloy-receiver.family-tree.svc.cluster.local:4317 # grpc - use 4318 for HTTP
+              - name: OTEL_EXPORTER_OTLP_PROTOCOL
+                value: grpc
+
             image: ghcr.io/anderswallace/bot:latest
             imagePullPolicy: Always
             envFrom:
             - secretRef:
                 name: bot-env
-            # Health check
-            livenessProbe:
-              httpGet:
-                path: /healthz
-                port: 8080
-              initialDelaySeconds: 60
-              periodSeconds: 30
