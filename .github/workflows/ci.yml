@@ -18,7 +18,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: filter
+      - name: Detect file changes
+        id: filter
         run: |
           echo "web_changed=false" >> $GITHUB_OUTPUT
           echo "bot_changed=false" >> $GITHUB_OUTPUT
@@ -27,11 +28,11 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          if echo "$CHANGED_FILES" | grep -q '^web/'; then
+          if echo "$CHANGED_FILES" | grep -q '^web/src/'; then
             echo "web_changed=true" >> $GITHUB_OUTPUT; 
           fi
 
-          if echo "$CHANGED_FILES" | grep -q '^bot/'; then
+          if echo "$CHANGED_FILES" | grep -q '^bot/src/'; then
             echo "bot_changed=true" >> $GITHUB_OUTPUT; 
           fi
 

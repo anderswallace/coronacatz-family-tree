@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discord-bot
+  namespace: family-tree
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: discord-bot
+    template:
+      metadata:
+        labels:
+          app: discord-bot
+      spec:
+        containers:
+          - name: bot
+            image: ghcr.io/anderswallace/bot:latest
+            imagePullPolicy: Always
+            envFrom:
+              secretRef:
+                name: bot-env
+            # Health check
+            livenessProbe:
+              httpGet:
+                path: /healthz
+                port: 8080
+              initialDelaySeconds: 60
+              periodSeconds: 30
