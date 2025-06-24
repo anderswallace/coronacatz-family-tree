@@ -18,7 +18,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: filter
+      - name: Detect file changes
+        id: filter
         run: |
           echo "web_changed=false" >> $GITHUB_OUTPUT
           echo "bot_changed=false" >> $GITHUB_OUTPUT
