@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: discord-bot
-    template:
+  template:
       metadata:
         labels:
           app: discord-bot
@@ -18,7 +18,7 @@ spec:
             image: ghcr.io/anderswallace/bot:latest
             imagePullPolicy: Always
             envFrom:
-              secretRef:
+            - secretRef:
                 name: bot-env
             # Health check
             livenessProbe:
